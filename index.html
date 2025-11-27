@@ -1,4 +1,145 @@
-alert('Будь ласка, заповніть обовʼязкові поля!');
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-top: 20px;
+        }
+        
+        /* СТИЛІ ДЛЯ ВКЛАДОК */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e1e1e1;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            padding: 0 10px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid #667eea;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #667eea;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .info-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="tabs">
+        <button class="tab active" onclick="openTab('login')">🔐 Вхід</button>
+        <button class="tab" onclick="openTab('school')">🏫 Реєстрація закладу</button>
+    </div>
+
+    <div class="container">
+        <!-- ВКЛАДКА ВХОДУ -->
+        <div id="login" class="tab-content active">
+            <h2>Вхід до системи</h2>
+            <div class="info-message">
+                Доступ надається адміністратором закладу
+            </div>
+            <input type="text" id="login-email" placeholder="Email">
+            <input type="password" id="login-password" placeholder="Пароль">
+            <button class="btn" onclick="realLogin()">Увійти</button>
+            
+            <div style="text-align: center; margin: 15px 0;">
+                <a href="#" onclick="openTab('forgot')" style="color: #667eea;">Забули пароль?</a>
+            </div>
+        </div>
+
+        <!-- ВКЛАДКА РЕЄСТРАЦІЇ ЗАКЛАДУ -->
+        <div id="school" class="tab-content">
+            <h2>Реєстрація закладу освіти</h2>
+            alert('Будь ласка, заповніть обовʼязкові поля!');
                 return;
             }
             
