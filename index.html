@@ -4,88 +4,236 @@
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            max-width: 400px;
-            margin: 50px auto;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 500px;
+            margin: 0 auto;
             padding: 20px;
-            background: #f5f5f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
+        
         .container {
             background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 40px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 100%;
         }
+        
         h2 {
             text-align: center;
             color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
         }
-        input, button {
+        
+        input {
             width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
         }
-        button {
-            background: #007bff;
-            color: white;
+        
+        input:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            margin: 8px 0;
             border: none;
+            border-radius: 8px;
+            font-size: 14px;
             cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
         }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+        
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e1e1e1;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+        
         .tabs {
             display: flex;
             margin-bottom: 20px;
+            border-bottom: 2px solid #e1e1e1;
         }
+        
         .tab {
             flex: 1;
-            padding: 10px;
+            padding: 15px;
             text-align: center;
-            background: #eee;
+            background: none;
             border: none;
+            font-size: 16px;
             cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
         }
+        
         .tab.active {
-            background: #007bff;
-            color: white;
+            border-bottom: 3px solid #667eea;
+            color: #667eea;
+            font-weight: bold;
         }
+        
         .tab-content {
             display: none;
         }
+        
         .tab-content.active {
             display: block;
+        }
+        
+        .info-message {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            color: #666;
+        }
+        
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #667eea;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .admin-panel {
+            background: #e8f4fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .forgot-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e1e1e1;
+        }
+        
+        .forgot-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        
+        .forgot-link a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="tabs">
-            <button class="tab active" onclick="showTab('login')">Вхід</button>
-            <button class="tab" onclick="showTab('register')">Реєстрація школи</button>
-            <button class="tab" onclick="showTab('forgot')">Забули пароль?</button>
+            <button class="tab active" onclick="showTab('login')">🔐 Вхід</button>
+            <button class="tab" onclick="showTab('school')">🏫 Реєстрація школи</button>
         </div>
 
         <!-- ВХІД -->
         <div id="login" class="tab-content active">
-            <h2>Вхід в систему</h2>
+            <h2>Вхід до системи</h2>
+            <div class="info-message">
+                Доступ надається адміністратором школи
+            </div>
             <input type="email" id="loginEmail" placeholder="Email">
             <input type="password" id="loginPassword" placeholder="Пароль">
-            <button onclick="login()">Увійти</button>
+            <button class="btn btn-primary" onclick="login()">Увійти</button>
+            
+            <div class="forgot-link">
+                <a href="#" onclick="showTab('forgot')">Забули пароль?</a>
+            </div>
         </div>
 
         <!-- РЕЄСТРАЦІЯ ШКОЛИ -->
-        <div id="register" class="tab-content">
-            <h2>Реєстрація школи</h2>
-            <input type="text" id="schoolName" placeholder="Назва школи">
+        <div id="school" class="tab-content">
+            <h2>Реєстрація закладу освіти</h2>
+            <input type="text" id="schoolName" placeholder="Назва закладу">
             <input type="email" id="adminEmail" placeholder="Email директора">
-            <button onclick="registerSchool()">Зареєструвати</button>
+            <input type="text" id="schoolAddress" placeholder="Адреса">
+            <input type="tel" id="schoolPhone" placeholder="Телефон">
+            <select id="schoolType">
+                <option value="">Тип закладу</option>
+                <option value="school">Школа</option>
+                <option value="lyceum">Ліцей</option>
+                <option value="gymnasium">Гімназія</option>
+            </select>
+            <button class="btn btn-primary" onclick="registerSchool()">Зареєструвати заклад</button>
         </div>
 
         <!-- ВІДНОВЛЕННЯ ПАРОЛЯ -->
         <div id="forgot" class="tab-content">
             <h2>Відновлення пароля</h2>
-            <input type="email" id="recoveryEmail" placeholder="Ваш email">
-            <button onclick="sendCode()">Надіслати код</button>
+            <div class="info-message">
+                Код буде відправлено на вашу поштову скриньку
+            </div>
+            <input type="email" id="recoveryEmail" placeholder="Введіть ваш email">
+            <button class="btn btn-primary" id="sendCodeBtn" onclick="sendRecoveryCode()">
+                Надіслати код
+            </button>
+            
+            <div id="codeSection" style="display:none; margin-top: 20px;">
+                <input type="text" id="recoveryCode" placeholder="Код з email">
+                <input type="password" id="newPassword" placeholder="Новий пароль">
+                <button class="btn btn-primary" onclick="resetPassword()">Змінити пароль</button>
+            </div>
+            
+            <div class="forgot-link">
+                <a href="#" onclick="showTab('login')">← Назад до входу</a>
+            </div>
+        </div>
+
+        <!-- АДМІН ПАНЕЛЬ -->
+        <div id="adminPanel" class="tab-content" style="display:none">
+            <h2>👑 Адміністративна панель</h2>
+            <div class="admin-panel">
+                <h3>Вітаємо, Адміністратор!</h3>
+                <p>Ви успішно увійшли в систему як адмін.</p>
+                
+                <div style="margin: 20px 0;">
+                    <button class="btn btn-primary" onclick="manageUsers()">👥 Керування користувачами</button>
+                    <button class="btn btn-primary" onclick="manageGrades()">📊 Керування оцінками</button>
+                    <button class="btn btn-primary" onclick="systemSettings()">⚙️ Налаштування системи</button>
+                </div>
+                
+                <button class="btn btn-secondary" onclick="logout()">🚪 Вийти</button>
+            </div>
         </div>
     </div>
 
@@ -93,28 +241,45 @@
         // Ініціалізація EmailJS
         emailjs.init("G0J3Izq0LA9Bgb4X0");
 
+        // ТВІЙ АДМІН-АКАУНТ
+        const adminAccount = {
+            email: "admin@school.com",
+            password: "admin123",
+            name: "Головний Адміністратор"
+        };
+
         function showTab(tabName) {
-            // Ховаємо всі вкладки
             document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.style.display = 'none';
+                tab.classList.remove('active');
             });
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
             
-            // Показуємо вибрану вкладку
-            document.getElementById(tabName).style.display = 'block';
-            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            // Для кнопки "Забули пароль" не додаємо active клас до вкладок
+            if(tabName !== 'forgot') {
+                event.target.classList.add('active');
+            }
         }
 
         function login() {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             
-            if(email && password) {
-                alert('Вхід успішний! Email: ' + email);
+            if(!email || !password) {
+                alert('Будь ласка, заповніть всі поля!');
+                return;
+            }
+
+            // ПЕРЕВІРКА АДМІНА
+            if(email === adminAccount.email && password === adminAccount.password) {
+                document.getElementById('login').classList.remove('active');
+                document.getElementById('adminPanel').classList.add('active');
+                alert('👑 Вітаємо! Ви увійшли як Адміністратор!');
             } else {
-                alert('Заповніть всі поля!');
+                alert('❌ Невірний email або пароль!');
             }
         }
 
@@ -122,37 +287,85 @@
             const schoolName = document.getElementById('schoolName').value;
             const email = document.getElementById('adminEmail').value;
             
-            if(schoolName && email) {
-                alert('Школа "' + schoolName + '" успішно зареєстрована! Логін: ' + email);
+            if(!schoolName || !email) {
+                alert('Будь ласка, заповніть обовʼязкові поля!');
+                return;
+            }
+
+            alert('✅ Школа "' + schoolName + '" успішно зареєстрована!\nЛогін для директора: ' + email);
+            showTab('login');
+        }
+
+        function sendRecoveryCode() {
+            const email = document.getElementById('recoveryEmail').value;
+            const btn = document.getElementById('sendCodeBtn');
+            
+            if(!email) {
+                alert('Будь ласка, введіть email!');
+                return;
+            }
+
+            const code = Math.floor(100000 + Math.random() * 900000);
+            
+            btn.innerHTML = '<div class="loader"></div>';
+            btn.disabled = true;
+
+            emailjs.send("service_ydertiz", "template_recovery", {
+                to_email: email,
+                КОД_ДОСТУПА: code,
+                time: "15 хвилин"
+            })
+            .then(function(response) {
+                btn.innerHTML = 'Код відправлено ✓';
+                alert('✅ Код відправлено на ' + email);
+                document.getElementById('codeSection').style.display = 'block';
+                
+                setTimeout(() => {
+                    btn.innerHTML = 'Надіслати код';
+                    btn.disabled = false;
+                }, 3000);
+            })
+            .catch(function(error) {
+                btn.innerHTML = 'Надіслати код';
+                btn.disabled = false;
+                alert('❌ Помилка: ' + JSON.stringify(error));
+            });
+        }
+
+        function resetPassword() {
+            const code = document.getElementById('recoveryCode').value;
+            const newPass = document.getElementById('newPassword').value;
+            
+            if(code && newPass) {
+                alert('✅ Пароль успішно змінено!');
                 showTab('login');
             } else {
-                alert('Заповніть всі поля!');
+                alert('❌ Заповніть всі поля!');
             }
         }
 
-        function sendCode() {
-            const email = document.getElementById('recoveryEmail').value;
-            
-            if(email) {
-                const code = Math.floor(100000 + Math.random() * 900000);
-                
-                // Відправка email
-                emailjs.send("service_ydertiz", "template_recovery", {
-                    to_email: email,
-                    КОД_ДОСТУПА: code,
-                    time: "15 хвилин"
-                }).then(function() {
-                    alert('Код відправлено на ' + email + '\nКод: ' + code);
-                }, function(error) {
-                    alert('Помилка: ' + JSON.stringify(error));
-                });
-            } else {
-                alert('Введіть email!');
-            }
+        function manageUsers() {
+            alert('👥 Тут буде керування користувачами');
         }
 
-        // Показуємо першу вкладку при завантаженні
-        document.getElementById('login').style.display = 'block';
+        function manageGrades() {
+            alert('📊 Тут буде керування оцінками');
+        }
+
+        function systemSettings() {
+            alert('⚙️ Тут будуть налаштування системи');
+        }
+
+        function logout() {
+            document.getElementById('adminPanel').classList.remove('active');
+            document.getElementById('login').classList.add('active');
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            alert('👋 Ви вийшли з системи');
+        }
+
+        // Автоматично показуємо першу вкладку
+        document.getElementById('login').classList.add('active');
     </script>
 </body>
 </html>
