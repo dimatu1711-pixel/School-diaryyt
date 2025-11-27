@@ -1,65 +1,157 @@
-
 <!DOCTYPE html>
-<html lang="uk">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Щоденник</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-top: 20px;
+        }
+        
+        /* СТИЛІ ДЛЯ ВКЛАДОК */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e1e1e1;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            padding: 0 10px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid #667eea;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+    </style>
 </head>
 <body>
-    <!-- ЕКРАН ВХОДУ -->
-    <div id="login-screen" class="screen active">
-        <div class="login-container">
-            <h1>📚 Ласкаво просимо до Щоденника!</h1>
-            <div class="info-box">
-                <h3>Цей щоденник дозволяє:</h3>
-                <ul>
-                    <li>✅ Додавати оцінки з різних предметів</li>
-                    <li>✅ Переглядати всі свої оцінки</li>
-                    <li>✅ Зберігати дані локально</li>
-                    <li>✅ Працює без реєстрації</li>
-                </ul>
-            </div>
-            <div class="user-setup">
-                <input type="text" id="userName" placeholder="Введіть ваше ім'я">
-                <button onclick="enterDiary()">Увійти до щоденника</button>
-            </div>
+    <div class="tabs">
+        <button class="tab active" onclick="openTab('login')">Увійти</button>
+        <button class="tab" onclick="openTab('register')">Реєстрація</button>
+        <button class="tab" onclick="openTab('school')">Реєстрація закладу освіти</button>
+    </div>
+
+    <div class="container">
+        <!-- ВКЛАДКА ВХОДУ -->
+        <div id="login" class="tab-content active">
+            <h2>🔐 Вхід до системи</h2>
+            <input type="text" placeholder="Логін або email">
+            <input type="password" placeholder="Пароль">
+            <button class="btn">Увійти</button>
+        </div>
+
+        <!-- ВКЛАДКА РЕЄСТРАЦІЇ КОРИСТУВАЧА -->
+        <div id="register" class="tab-content">
+            <h2>📝 Реєстрація</h2>
+            <input type="text" placeholder="Ім'я">
+            <input type="email" placeholder="Email">
+            <input type="password" placeholder="Пароль">
+            <select>
+                <option>Оберіть роль</option>
+                <option>Учень</option>
+                <option>Вчитель</option>
+                <option>Батьки</option>
+            </select>
+            <button class="btn">Зареєструватися</button>
+        </div>
+
+        <!-- ВКЛАДКА РЕЄСТРАЦІЇ ЗАКЛАДУ ОСВІТИ -->
+        <div id="school" class="tab-content">
+            <h2>🏫 Реєстрація закладу освіти</h2>
+            <input type="text" placeholder="Назва закладу">
+            <input type="text" placeholder="Адреса">
+            <input type="text" placeholder="Контактний телефон">
+            <input type="email" placeholder="Email закладу">
+            <select>
+                <option>Тип закладу</option>
+                <option>Школа</option>
+                <option>Ліцей</option>
+                <option>Гімназія</option>
+                <option>Коледж</option>
+            </select>
+            <input type="text" placeholder="Директор">
+            <input type="number" placeholder="Кількість учнів">
+            <textarea placeholder="Додаткова інформація" rows="4"></textarea>
+            <button class="btn">Зареєструвати заклад</button>
         </div>
     </div>
 
-    <!-- ОСНОВНИЙ ЕКРАН ЩОДЕННИКА -->
-    <div id="diary-screen" class="screen">
-        <div class="container">
-            <header>
-                <h1>📚 Щоденник: <span id="greeting"></span></h1>
-                <button onclick="logout()">Вийти</button>
-            </header>
+    <script>
+        function openTab(tabName) {
+            // Ховаємо всі вкладки
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
             
-            <div class="add-grade">
-                <input type="text" id="subject" placeholder="Предмет">
-                <input type="number" id="grade" placeholder="Оцінка" min="1" max="12">
-                <button onclick="addGrade()">Додати оцінку</button>
-            </div>
-
-            <div class="grades-list">
-                <h2>Мої оцінки:</h2>
-                <ul id="grades"></ul>
-            </div>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+            // Видаляємо активний клас з усіх кнопок
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Показуємо вибрану вкладку
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+    </script>
 </body>
 </html>
-```
-
-
-}
-
-.grade-value {
-    background: #667eea;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 20px;
-```
