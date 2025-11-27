@@ -1,58 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto;
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .container {
             background: white;
-            padding: 30px;
+            padding: 40px 30px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-top: 20px;
-        }
-        
-        /* СТИЛІ ДЛЯ ВКЛАДОК */
-        .tabs {
-            display: flex;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e1e1e1;
-            background: white;
-            border-radius: 10px 10px 0 0;
-            padding: 0 10px;
-        }
-        
-        .tab {
-            flex: 1;
-            padding: 15px;
-            text-align: center;
-            background: none;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            border-bottom: 3px solid transparent;
-        }
-        
-        .tab.active {
-            border-bottom: 3px solid #667eea;
-            color: #667eea;
-            font-weight: bold;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
+            width: 100%;
         }
         
         h2 {
@@ -62,7 +30,7 @@
             font-size: 24px;
         }
         
-        input, select, textarea {
+        input {
             width: 100%;
             padding: 12px 15px;
             margin: 8px 0;
@@ -82,75 +50,160 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .forgot-link {
+            text-align: center;
+            margin: 15px 0;
+            color: #667eea;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .info-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #667eea;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <div class="tabs">
-        <button class="tab active" onclick="openTab('login')">Увійти</button>
-        <button class="tab" onclick="openTab('register')">Реєстрація</button>
-        <button class="tab" onclick="openTab('school')">Реєстрація закладу освіти</button>
-    </div>
-
     <div class="container">
-        <!-- ВКЛАДКА ВХОДУ -->
-        <div id="login" class="tab-content active">
-            <h2>🔐 Вхід до системи</h2>
-            <input type="text" placeholder="Логін або email">
-            <input type="password" placeholder="Пароль">
-            <button class="btn">Увійти</button>
+        <!-- ЕКРАН ВХОДУ -->
+        <div id="login-section">
+            <h2>📚 Електронний щоденник</h2>
+            <div class="info-message">
+                Доступ надається адміністратором школи
+            </div>
+            <input type="text" id="username" placeholder="Логін (видається школою)">
+            <input type="password" id="password" placeholder="Пароль">
+            <button class="btn" onclick="login()">Увійти</button>
+            
+            <div class="forgot-link" onclick="showForgotPassword()">
+                Забули пароль?
+            </div>
         </div>
 
-        <!-- ВКЛАДКА РЕЄСТРАЦІЇ КОРИСТУВАЧА -->
-        <div id="register" class="tab-content">
-            <h2>📝 Реєстрація</h2>
-            <input type="text" placeholder="Ім'я">
-            <input type="email" placeholder="Email">
-            <input type="password" placeholder="Пароль">
-            <select>
-                <option>Оберіть роль</option>
-                <option>Учень</option>
-                <option>Вчитель</option>
-                <option>Батьки</option>
-            </select>
-            <button class="btn">Зареєструватися</button>
-        </div>
-
-        <!-- ВКЛАДКА РЕЄСТРАЦІЇ ЗАКЛАДУ ОСВІТИ -->
-        <div id="school" class="tab-content">
-            <h2>🏫 Реєстрація закладу освіти</h2>
-            <input type="text" placeholder="Назва закладу">
-            <input type="text" placeholder="Адреса">
-            <input type="text" placeholder="Контактний телефон">
-            <input type="email" placeholder="Email закладу">
-            <select>
-                <option>Тип закладу</option>
-                <option>Школа</option>
-                <option>Ліцей</option>
-                <option>Гімназія</option>
-                <option>Коледж</option>
-            </select>
-            <input type="text" placeholder="Директор">
-            <input type="number" placeholder="Кількість учнів">
-            <textarea placeholder="Додаткова інформація" rows="4"></textarea>
-            <button class="btn">Зареєструвати заклад</button>
+        <!-- ЕКРАН ВІДНОВЛЕННЯ ПАРОЛЯ -->
+        <div id="forgot-section" style="display:none">
+            <h2>🔐 Відновлення пароля</h2>
+            <div class="info-message">
+                Код буде відправлено на вашу поштову скриньку
+            </div>
+            <input type="email" id="recovery-email" placeholder="Введіть ваш email">
+            <button class="btn" id="send-code-btn" onclick="sendRecoveryCode()">
+                Надіслати код
+            </button>
+            
+            <div id="code-section" style="margin-top: 20px; display:none">
+                <input type="text" id="recovery-code" placeholder="Код з email">
+                <input type="password" id="new-password" placeholder="Новий пароль">
+                <button class="btn" onclick="resetPassword()">Змінити пароль</button>
+            </div>
+            
+            <div class="forgot-link" onclick="showLogin()">
+                ← Назад до входу
+            </div>
         </div>
     </div>
 
     <script>
-        function openTab(tabName) {
-            // Ховаємо всі вкладки
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
+        // Ініціалізація EmailJS з твоїми ключами
+        emailjs.init("G0J3Izq0LA9Bgb4X0");
+        
+        let recoveryCode = "";
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
             
-            // Видаляємо активний клас з усіх кнопок
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
+            if(username && password) {
+                alert("Вхід успішний! (демо)");
+            } else {
+                alert('Будь ласка, заповніть всі поля!');
+            }
+        }
+
+        function showForgotPassword() {
+            document.getElementById('login-section').style.display = 'none';
+            document.getElementById('forgot-section').style.display = 'block';
+        }
+
+        function showLogin() {
+            document.getElementById('forgot-section').style.display = 'none';
+            document.getElementById('login-section').style.display = 'block';
+        }
+
+        function sendRecoveryCode() {
+            const email = document.getElementById('recovery-email').value;
+            const btn = document.getElementById('send-code-btn');
             
-            // Показуємо вибрану вкладку
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            if(!email) {
+                alert('Будь ласка, введіть ваш email!');
+                return;
+            }
+
+            // Генеруємо код
+            recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            // Блокуємо кнопку
+            btn.innerHTML = '<div class="loader"></div>';
+            btn.disabled = true;
+
+            // Відправляємо email через твій service_ydertiz
+            emailjs.send("service_ydertiz", "template_recovery", {
+                to_email: email,
+                КОД_ДОСТУПА: recoveryCode,
+                time: "15 хвилин"
+            })
+            .then(function(response) {
+                btn.innerHTML = 'Код відправлено ✓';
+                alert('✅ Код успішно відправлено на вашу пошту!');
+                document.getElementById('code-section').style.display = 'block';
+                
+                setTimeout(() => {
+                    btn.innerHTML = 'Надіслати код';
+                    btn.disabled = false;
+                }, 5000);
+            }, function(error) {
+                btn.innerHTML = 'Надіслати код';
+                btn.disabled = false;
+                alert('❌ Помилка відправки: ' + JSON.stringify(error));
+            });
+        }
+
+        function resetPassword() {
+            const enteredCode = document.getElementById('recovery-code').value;
+            const newPass = document.getElementById('new-password').value;
+            
+            if(enteredCode === recoveryCode && newPass) {
+                alert('✅ Пароль успішно змінено!');
+                showLogin();
+            } else {
+                alert('❌ Невірний код або пароль!');
+            }
         }
     </script>
 </body>
