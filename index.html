@@ -1,159 +1,24 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .container {
-            background: white;
-            padding: 40px 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            width: 100%;
-        }
-        
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 24px;
-        }
-        
-        input {
-            width: 100%;
-            padding: 12px 15px;
-            margin: 8px 0;
-            border: 2px solid #e1e1e1;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        
-        .btn {
-            padding: 12px 20px;
-            margin: 8px 0;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            width: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-        
-        .forgot-link {
-            text-align: center;
-            margin: 15px 0;
-            color: #667eea;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-        
-        .info-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 12px;
-            border-radius: 5px;
-            margin: 10px 0;
-            text-align: center;
-        }
-        
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 3px solid #667eea;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- ЕКРАН ВХОДУ -->
-        <div id="login-section">
-            <h2>📚 Електронний щоденник</h2>
-            <div class="info-message">
-                Доступ надається адміністратором школи
-            </div>
-            <input type="text" id="username" placeholder="Логін (видається школою)">
-            <input type="password" id="password" placeholder="Пароль">
-            <button class="btn" onclick="login()">Увійти</button>
-            
-            <div class="forgot-link" onclick="showForgotPassword()">
-                Забули пароль?
-            </div>
-        </div>
-
-        <!-- ЕКРАН ВІДНОВЛЕННЯ ПАРОЛЯ -->
-        <div id="forgot-section" style="display:none">
-            <h2>🔐 Відновлення пароля</h2>
-            <div class="info-message">
-                Код буде відправлено на вашу поштову скриньку
-            </div>
-            <input type="email" id="recovery-email" placeholder="Введіть ваш email">
-            <button class="btn" id="send-code-btn" onclick="sendRecoveryCode()">
-                Надіслати код
-            </button>
-            
-            <div id="code-section" style="margin-top: 20px; display:none">
-                <input type="text" id="recovery-code" placeholder="Код з email">
-                <input type="password" id="new-password" placeholder="Новий пароль">
-                <button class="btn" onclick="resetPassword()">Змінити пароль</button>
-            </div>
-            
-            <div class="forgot-link" onclick="showLogin()">
-                ← Назад до входу
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Ініціалізація EmailJS з твоїми ключами
-        emailjs.init("G0J3Izq0LA9Bgb4X0");
-        
-        let recoveryCode = "";
-
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            if(username && password) {
-                alert("Вхід успішний! (демо)");
-            } else {
-                alert('Будь ласка, заповніть всі поля!');
+alert('Будь ласка, заповніть обовʼязкові поля!');
+                return;
             }
-        }
-
-        function showForgotPassword() {
-            document.getElementById('login-section').style.display = 'none';
-            document.getElementById('forgot-section').style.display = 'block';
-        }
-
-        function showLogin() {
-            document.getElementById('forgot-section').style.display = 'none';
-            document.getElementById('login-section').style.display = 'block';
+            
+            // Зберігаємо дані школи
+            const schools = JSON.parse(localStorage.getItem('schools')) || [];
+            schools.push(schoolData);
+            localStorage.setItem('schools', JSON.stringify(schools));
+            
+            // Створюємо адміністратора школи
+            const adminPassword = Math.random().toString(36).slice(-8);
+            users[schoolData.email] = {
+                password: adminPassword,
+                school: schoolData.name,
+                role: 'admin'
+            };
+            localStorage.setItem('schoolUsers', JSON.stringify(users));
+            
+            alert(`✅ Заклад "${schoolData.name}" успішно зареєстровано!\n\nЛогін: ${schoolData.email}\nПароль: ${adminPassword}\n\nЗбережіть ці дані для входу!`);
+            
+            openTab('login');
         }
 
         function sendRecoveryCode() {
@@ -165,14 +30,11 @@
                 return;
             }
 
-            // Генеруємо код
             recoveryCode = Math.floor(100000 + Math.random() * 900000).toString();
             
-            // Блокуємо кнопку
             btn.innerHTML = '<div class="loader"></div>';
             btn.disabled = true;
 
-            // Відправляємо email через твій service_ydertiz
             emailjs.send("service_ydertiz", "template_recovery", {
                 to_email: email,
                 КОД_ДОСТУПА: recoveryCode,
@@ -197,10 +59,18 @@
         function resetPassword() {
             const enteredCode = document.getElementById('recovery-code').value;
             const newPass = document.getElementById('new-password').value;
+            const email = document.getElementById('recovery-email').value;
             
             if(enteredCode === recoveryCode && newPass) {
-                alert('✅ Пароль успішно змінено!');
-                showLogin();
+                // Оновлюємо пароль
+                if(users[email]) {
+                    users[email].password = newPass;
+                    localStorage.setItem('schoolUsers', JSON.stringify(users));
+                    alert('✅ Пароль успішно змінено!');
+                    openTab('login');
+                } else {
+                    alert('❌ Користувача з таким email не знайдено!');
+                }
             } else {
                 alert('❌ Невірний код або пароль!');
             }
