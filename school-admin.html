@@ -120,13 +120,20 @@
             border-radius: 8px;
             text-align: center;
         }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
             <h1>🏫 Управління школою: <span id="schoolTitle">Нова школа</span></h1>
-            <button class="btn-small" onclick="logout()" style="background: #ff6b6b;">Вийти</button>
+            <button class="btn-small" onclick="logout()" style="background: #ff6b6b;">← На головну</button>
         </div>
 
         <div class="stats">
@@ -160,7 +167,7 @@
         <!-- ВЧИТЕЛІ -->
         <div id="teachers" class="tab-content active">
             <h3>Додати нового вчителя</h3>
-            <div style="display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+            <div class="form-row">
                 <input type="text" id="teacherName" placeholder="ПІБ вчителя">
                 <input type="email" id="teacherEmail" placeholder="Email">
                 <input type="text" id="teacherSubject" placeholder="Предмет">
@@ -168,9 +175,7 @@
             </div>
             
             <h3>Список вчителів</h3>
-            <div class="user-list" id="teachersList">
-                <!-- Вчителі додаються тут -->
-            </div>
+            <div class="user-list" id="teachersList"></div>
         </div>
 
         <!-- КЛАСИ -->
@@ -186,9 +191,7 @@
             </div>
             
             <h3>Список класів</h3>
-            <div class="class-grid" id="classesList">
-                <!-- Класи додаються тут -->
-            </div>
+            <div class="class-grid" id="classesList"></div>
         </div>
 
         <!-- РОЗКЛАД -->
@@ -214,9 +217,7 @@
             </div>
             
             <h3>Адміністратори школи</h3>
-            <div class="user-list" id="adminsList">
-                <!-- Адміни додаються тут -->
-            </div>
+            <div class="user-list" id="adminsList"></div>
         </div>
 
         <!-- САЙТ ШКОЛИ -->
@@ -230,14 +231,11 @@
         <!-- ВСІ КОРИСТУВАЧІ -->
         <div id="users" class="tab-content">
             <h3>Всі користувачі школи</h3>
-            <div class="user-list" id="allUsersList">
-                <!-- Всі користувачі тут -->
-            </div>
+            <div class="user-list" id="allUsersList"></div>
         </div>
     </div>
 
     <script>
-        // Дані школи (зберігаються в localStorage)
         let schoolData = JSON.parse(localStorage.getItem('schoolData')) || {
             name: 'Нова школа',
             website: '',
@@ -247,7 +245,6 @@
             students: []
         };
 
-        // Оновлюємо інтерфейс при завантаженні
         document.addEventListener('DOMContentLoaded', function() {
             updateSchoolTitle();
             updateStats();
@@ -289,7 +286,6 @@
                 populateTeacherSelect();
                 updateStats();
                 
-                // Очищаємо поля
                 document.getElementById('teacherName').value = '';
                 document.getElementById('teacherEmail').value = '';
                 document.getElementById('teacherSubject').value = '';
@@ -346,7 +342,6 @@
                 populateClassSelect();
                 updateStats();
                 
-                // Очищаємо поля
                 document.getElementById('classGrade').value = '';
                 document.getElementById('classLetter').value = '';
             } else {
@@ -386,7 +381,6 @@
                 loadAdmins();
                 updateStats();
                 
-                // Очищаємо поля
                 document.getElementById('adminName').value = '';
                 document.getElementById('adminEmail').value = '';
             } else {
@@ -435,12 +429,10 @@
             const list = document.getElementById('allUsersList');
             list.innerHTML = '';
             
-            // Вчителі
             schoolData.teachers.forEach(user => {
                 addUserToList(list, user.name, user.email, 'Вчитель', user.subject);
             });
             
-            // Адміни
             schoolData.admins.forEach(user => {
                 addUserToList(list, user.name, user.email, 'Адміністратор', '');
             });
