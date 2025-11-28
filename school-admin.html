@@ -178,7 +178,14 @@
         
         .form-row {
             display: grid;
-            grid-template-columns: 2fr 2fr 1fr 1fr;
+            grid-template-columns: 2fr 2fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .student-form-row {
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr 2fr 1fr;
             gap: 10px;
             margin-bottom: 20px;
         }
@@ -223,8 +230,23 @@
             border: 1px solid #f5c6cb;
         }
         
+        .password-field {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #666;
+        }
+        
         @media (max-width: 768px) {
-            .form-row {
+            .form-row, .student-form-row {
                 grid-template-columns: 1fr;
             }
             
@@ -285,6 +307,10 @@
                 <input type="text" id="teacherName" placeholder="ПІБ вчителя">
                 <input type="email" id="teacherEmail" placeholder="Email">
                 <input type="text" id="teacherSubject" placeholder="Предмет">
+                <div class="password-field">
+                    <input type="password" id="teacherPassword" placeholder="Пароль" class="password-input">
+                    <button type="button" class="toggle-password" onclick="togglePassword('teacherPassword')">👁️</button>
+                </div>
                 <button class="btn-small" onclick="addTeacher()">Додати</button>
             </div>
             
@@ -298,9 +324,13 @@
             <div class="notification" id="studentNotification"></div>
             
             <h3>Додати нового учня</h3>
-            <div style="display: grid; grid-template-columns: 2fr 2fr 2fr 1fr; gap: 10px; margin-bottom: 20px;">
+            <div class="student-form-row">
                 <input type="text" id="studentName" placeholder="ПІБ учня">
                 <input type="email" id="studentEmail" placeholder="Email">
+                <div class="password-field">
+                    <input type="password" id="studentPassword" placeholder="Пароль" class="password-input">
+                    <button type="button" class="toggle-password" onclick="togglePassword('studentPassword')">👁️</button>
+                </div>
                 <select id="studentClass">
                     <option value="">Оберіть клас</option>
                 </select>
@@ -398,6 +428,12 @@
             populateStudentClassSelect();
         });
 
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+            input.setAttribute('type', type);
+        }
+
         function updateSchoolTitle() {
             document.getElementById('schoolTitle').textContent = schoolData.name;
         }
@@ -424,13 +460,15 @@
             const name = document.getElementById('teacherName').value;
             const email = document.getElementById('teacherEmail').value;
             const subject = document.getElementById('teacherSubject').value;
+            const password = document.getElementById('teacherPassword').value;
             
-            if (name && email && subject) {
+            if (name && email && subject && password) {
                 const teacher = {
                     id: Date.now(),
                     name: name,
                     email: email,
-                    subject: subject
+                    subject: subject,
+                    password: password
                 };
                 
                 schoolData.teachers.push(teacher);
@@ -442,6 +480,7 @@
                 document.getElementById('teacherName').value = '';
                 document.getElementById('teacherEmail').value = '';
                 document.getElementById('teacherSubject').value = '';
+                document.getElementById('teacherPassword').value = '';
                 
                 showNotification('teacherNotification', 'Вчителя успішно додано!', 'success');
             } else {
@@ -466,10 +505,20 @@
                         <strong>${teacher.name}</strong><br>
                         <small>${teacher.email} | ${teacher.subject}</small>
                     </div>
-                    <button class="btn-small btn-danger" onclick="deleteTeacher(${teacher.id})">Видалити</button>
+                    <div>
+                        <button class="btn-small" onclick="showTeacherPassword(${teacher.id})" style="background: #28a745;">Показати пароль</button>
+                        <button class="btn-small btn-danger" onclick="deleteTeacher(${teacher.id})">Видалити</button>
+                    </div>
                 `;
                 list.appendChild(item);
             });
+        }
+
+        function showTeacherPassword(teacherId) {
+            const teacher = schoolData.teachers.find(t => t.id === teacherId);
+            if (teacher) {
+                alert(`Пароль вчителя ${teacher.name}: ${teacher.password}`);
+            }
         }
 
         function deleteTeacher(id) {
@@ -486,13 +535,15 @@
         function addStudent() {
             const name = document.getElementById('studentName').value;
             const email = document.getElementById('studentEmail').value;
+            const password = document.getElementById('studentPassword').value;
             const classId = document.getElementById('studentClass').value;
             
-            if (name && email && classId) {
+            if (name && email && password && classId) {
                 const student = {
                     id: Date.now(),
                     name: name,
                     email: email,
+                    password: password,
                     classId: parseInt(classId)
                 };
                 
@@ -510,6 +561,7 @@
                 
                 document.getElementById('studentName').value = '';
                 document.getElementById('studentEmail').value = '';
+                document.getElementById('studentPassword').value = '';
                 
                 showNotification('studentNotification', 'Учня успішно додано!', 'success');
             } else {
@@ -537,10 +589,20 @@
                         <strong>${student.name}</strong><br>
                         <small>${student.email} | Клас: ${className}</small>
                     </div>
-                    <button class="btn-small btn-danger" onclick="deleteStudent(${student.id})">Видалити</button>
+                    <div>
+                        <button class="btn-small" onclick="showStudentPassword(${student.id})" style="background: #28a745;">Показати пароль</button>
+                        <button class="btn-small btn-danger" onclick="deleteStudent(${student.id})">Видалити</button>
+                    </div>
                 `;
                 list.appendChild(item);
             });
+        }
+
+        function showStudentPassword(studentId) {
+            const student = schoolData.students.find(s => s.id === studentId);
+            if (student) {
+                alert(`Пароль учня ${student.name}: ${student.password}`);
+            }
         }
 
         function deleteStudent(id) {
