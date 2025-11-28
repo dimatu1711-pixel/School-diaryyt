@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e1e1e1;
+            flex-wrap: wrap;
+        }
+        
+        .tab {
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid #667eea;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .btn-small {
+            padding: 8px 15px;
+            width: auto;
+            margin: 5px;
+        }
+        
+        .user-list {
+            margin: 20px 0;
+        }
+        
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            margin: 10px 0;
+            background: #f8f9fa;
+        }
+        
+        .class-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .class-card {
+            padding: 15px;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            padding: 20px;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <h1>🏫 Управління школою: <span id="schoolTitle">Нова школа</span></h1>
+            <button class="btn-small" onclick="logout()" style="background: #ff6b6b;">Вийти</button>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3 id="teachersCount">0</h3>
+                <p>Вчителів</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="studentsCount">0</h3>
+                <p>Учнів</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="classesCount">0</h3>
+                <p>Класів</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="adminsCount">0</h3>
+                <p>Адмінів</p>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="openTab('teachers')">👨‍🏫 Вчителі</button>
+            <button class="tab" onclick="openTab('classes')">📚 Класи</button>
+            <button class="tab" onclick="openTab('schedule')">📅 Розклад</button>
+            <button class="tab" onclick="openTab('admins')">⚙️ Адміністратори</button>
+            <button class="tab" onclick="openTab('website')">🌐 Сайт школи</button>
+            <button class="tab" onclick="openTab('users')">👥 Всі користувачі</button>
+        </div>
+
+        <!-- ВЧИТЕЛІ -->
+        <div id="teachers" class="tab-content active">
+            <h3>Додати нового вчителя</h3>
+            <div style="display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="teacherName" placeholder="ПІБ вчителя">
+                <input type="email" id="teacherEmail" placeholder="Email">
+                <input type="text" id="teacherSubject" placeholder="Предмет">
+                <button class="btn-small" onclick="addTeacher()">Додати</button>
+            </div>
+            
+            <h3>Список вчителів</h3>
+            <div class="user-list" id="teachersList">
+                <!-- Вчителі додаються тут -->
+            </div>
+        </div>
+
+        <!-- КЛАСИ -->
+        <div id="classes" class="tab-content">
+            <h3>Додати новий клас</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 2fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <input type="number" id="classGrade" placeholder="Клас" min="1" max="11">
+                <input type="text" id="classLetter" placeholder="Літера (А, Б, В)">
+                <select id="classTeacher">
+                    <option value="">Оберіть вчителя</option>
+                </select>
+                <button class="btn-small" onclick="addClass()">Додати клас</button>
+            </div>
+            
+            <h3>Список класів</h3>
+            <div class="class-grid" id="classesList">
+                <!-- Класи додаються тут -->
+            </div>
+        </div>
+
+        <!-- РОЗКЛАД -->
+        <div id="schedule" class="tab-content">
+            <h3>Розклад занять</h3>
+            <div style="margin-bottom: 20px;">
+                <select id="scheduleClass" onchange="loadSchedule()">
+                    <option value="">Оберіть клас</option>
+                </select>
+            </div>
+            <div id="scheduleDisplay">
+                <p>Оберіть клас для перегляду розкладу</p>
+            </div>
+        </div>
+
+        <!-- АДМІНІСТРАТОРИ -->
+        <div id="admins" class="tab-content">
+            <h3>Додати адміністратора</h3>
+            <div style="display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="adminName" placeholder="ПІБ адміністратора">
+                <input type="email" id="adminEmail" placeholder="Email">
+                <button class="btn-small" onclick="addAdmin()">Додати</button>
+            </div>
+            
+            <h3>Адміністратори школи</h3>
+            <div class="user-list" id="adminsList">
+                <!-- Адміни додаються тут -->
+            </div>
+        </div>
+
+        <!-- САЙТ ШКОЛИ -->
+        <div id="website" class="tab-content">
+            <h3>Налаштування сайту школи</h3>
+            <input type="url" id="schoolWebsite" placeholder="https://www.ваша-школа.com" style="margin-bottom: 15px;">
+            <button class="btn" onclick="saveWebsite()">💾 Зберегти сайт</button>
+            <div id="websiteStatus" style="margin-top: 15px; padding: 10px; border-radius: 5px; display: none;"></div>
+        </div>
+
+        <!-- ВСІ КОРИСТУВАЧІ -->
+        <div id="users" class="tab-content">
+            <h3>Всі користувачі школи</h3>
+            <div class="user-list" id="allUsersList">
+                <!-- Всі користувачі тут -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Дані школи (зберігаються в localStorage)
+        let schoolData = JSON.parse(localStorage.getItem('schoolData')) || {
+            name: 'Нова школа',
+            website: '',
+            teachers: [],
+            classes: [],
+            admins: [],
+            students: []
+        };
+
+        // Оновлюємо інтерфейс при завантаженні
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSchoolTitle();
+            updateStats();
+            loadTeachers();
+            loadClasses();
+            loadAdmins();
+            loadAllUsers();
+            populateTeacherSelect();
+            populateClassSelect();
+        });
+
+        function updateSchoolTitle() {
+            document.getElementById('schoolTitle').textContent = schoolData.name;
+        }
+
+        function updateStats() {
+            document.getElementById('teachersCount').textContent = schoolData.teachers.length;
+            document.getElementById('studentsCount').textContent = schoolData.students.length;
+            document.getElementById('classesCount').textContent = schoolData.classes.length;
+            document.getElementById('adminsCount').textContent = schoolData.admins.length;
+        }
+
+        function addTeacher() {
+            const name = document.getElementById('teacherName').value;
+            const email = document.getElementById('teacherEmail').value;
+            const subject = document.getElementById('teacherSubject').value;
+            
+            if (name && email && subject) {
+                const teacher = {
+                    id: Date.now(),
+                    name: name,
+                    email: email,
+                    subject: subject
+                };
+                
+                schoolData.teachers.push(teacher);
+                saveSchoolData();
+                loadTeachers();
+                populateTeacherSelect();
+                updateStats();
+                
+                // Очищаємо поля
+                document.getElementById('teacherName').value = '';
+                document.getElementById('teacherEmail').value = '';
+                document.getElementById('teacherSubject').value = '';
+            } else {
+                alert('Будь ласка, заповніть всі поля!');
+            }
+        }
+
+        function loadTeachers() {
+            const list = document.getElementById('teachersList');
+            list.innerHTML = '';
+            
+            schoolData.teachers.forEach(teacher => {
+                const item = document.createElement('div');
+                item.className = 'user-item';
+                item.innerHTML = `
+                    <div>
+                        <strong>${teacher.name}</strong><br>
+                        <small>${teacher.email} | ${teacher.subject}</small>
+                    </div>
+                    <button class="btn-small" style="background: #ff6b6b;" onclick="deleteTeacher(${teacher.id})">Видалити</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function deleteTeacher(id) {
+            schoolData.teachers = schoolData.teachers.filter(teacher => teacher.id !== id);
+            saveSchoolData();
+            loadTeachers();
+            populateTeacherSelect();
+            updateStats();
+        }
+
+        function addClass() {
+            const grade = document.getElementById('classGrade').value;
+            const letter = document.getElementById('classLetter').value;
+            const teacherId = document.getElementById('classTeacher').value;
+            
+            if (grade && letter && teacherId) {
+                const teacher = schoolData.teachers.find(t => t.id == teacherId);
+                const newClass = {
+                    id: Date.now(),
+                    name: `${grade}-${letter}`,
+                    grade: grade,
+                    letter: letter,
+                    teacher: teacher.name,
+                    students: 0
+                };
+                
+                schoolData.classes.push(newClass);
+                saveSchoolData();
+                loadClasses();
+                populateClassSelect();
+                updateStats();
+                
+                // Очищаємо поля
+                document.getElementById('classGrade').value = '';
+                document.getElementById('classLetter').value = '';
+            } else {
+                alert('Будь ласка, заповніть всі поля!');
+            }
+        }
+
+        function loadClasses() {
+            const list = document.getElementById('classesList');
+            list.innerHTML = '';
+            
+            schoolData.classes.forEach(classItem => {
+                const card = document.createElement('div');
+                card.className = 'class-card';
+                card.innerHTML = `
+                    <strong>${classItem.name}</strong><br>
+                    Учнів: ${classItem.students}<br>
+                    Вчитель: ${classItem.teacher}
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function addAdmin() {
+            const name = document.getElementById('adminName').value;
+            const email = document.getElementById('adminEmail').value;
+            
+            if (name && email) {
+                const admin = {
+                    id: Date.now(),
+                    name: name,
+                    email: email
+                };
+                
+                schoolData.admins.push(admin);
+                saveSchoolData();
+                loadAdmins();
+                updateStats();
+                
+                // Очищаємо поля
+                document.getElementById('adminName').value = '';
+                document.getElementById('adminEmail').value = '';
+            } else {
+                alert('Будь ласка, заповніть всі поля!');
+            }
+        }
+
+        function loadAdmins() {
+            const list = document.getElementById('adminsList');
+            list.innerHTML = '';
+            
+            schoolData.admins.forEach(admin => {
+                const item = document.createElement('div');
+                item.className = 'user-item';
+                item.innerHTML = `
+                    <div>
+                        <strong>${admin.name}</strong><br>
+                        <small>${admin.email}</small>
+                    </div>
+                    <button class="btn-small" style="background: #ff6b6b;" onclick="deleteAdmin(${admin.id})">Видалити</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function deleteAdmin(id) {
+            schoolData.admins = schoolData.admins.filter(admin => admin.id !== id);
+            saveSchoolData();
+            loadAdmins();
+            updateStats();
+        }
+
+        function saveWebsite() {
+            const website = document.getElementById('schoolWebsite').value;
+            schoolData.website = website;
+            saveSchoolData();
+            
+            const status = document.getElementById('websiteStatus');
+            status.textContent = '✅ Сайт успішно збережено!';
+            status.style.background = '#d4edda';
+            status.style.color = '#155724';
+            status.style.display = 'block';
+        }
+
+        function loadAllUsers() {
+            const list = document.getElementById('allUsersList');
+            list.innerHTML = '';
+            
+            // Вчителі
+            schoolData.teachers.forEach(user => {
+                addUserToList(list, user.name, user.email, 'Вчитель', user.subject);
+            });
+            
+            // Адміни
+            schoolData.admins.forEach(user => {
+                addUserToList(list, user.name, user.email, 'Адміністратор', '');
+            });
+        }
+
+        function addUserToList(list, name, email, role, info) {
+            const item = document.createElement('div');
+            item.className = 'user-item';
+            item.innerHTML = `
+                <div>
+                    <strong>${name}</strong><br>
+                    <small>${email} | ${role} ${info ? '| ' + info : ''}</small>
+                </div>
+            `;
+            list.appendChild(item);
+        }
+
+        function populateTeacherSelect() {
+            const select = document.getElementById('classTeacher');
+            select.innerHTML = '<option value="">Оберіть вчителя</option>';
+            
+            schoolData.teachers.forEach(teacher => {
+                const option = document.createElement('option');
+                option.value = teacher.id;
+                option.textContent = `${teacher.name} (${teacher.subject})`;
+                select.appendChild(option);
+            });
+        }
+
+        function populateClassSelect() {
+            const select = document.getElementById('scheduleClass');
+            select.innerHTML = '<option value="">Оберіть клас</option>';
+            
+            schoolData.classes.forEach(classItem => {
+                const option = document.createElement('option');
+                option.value = classItem.id;
+                option.textContent = classItem.name;
+                select.appendChild(option);
+            });
+        }
+
+        function loadSchedule() {
+            const classId = document.getElementById('scheduleClass').value;
+            const display = document.getElementById('scheduleDisplay');
+            
+            if (classId) {
+                const classItem = schoolData.classes.find(c => c.id == classId);
+                display.innerHTML = `
+                    <h4>Розклад для ${classItem.name}</h4>
+                    <p>Тут буде розклад занять для обраного класу...</p>
+                `;
+            } else {
+                display.innerHTML = '<p>Оберіть клас для перегляду розкладу</p>';
+            }
+        }
+
+        function saveSchoolData() {
+            localStorage.setItem('schoolData', JSON.stringify(schoolData));
+        }
+
+        function openTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function logout() {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
