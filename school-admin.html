@@ -1,4 +1,4 @@
-додай до коду доступ заходити та додавати учнів у класс <!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <style>
@@ -127,13 +127,57 @@
             gap: 10px;
             margin-bottom: 20px;
         }
+
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div id="loginPage" class="login-container" style="display: none;">
+        <h2 style="text-align: center;">Вхід до системи</h2>
+        <div class="login-form">
+            <input type="email" id="loginEmail" placeholder="Email">
+            <input type="password" id="loginPassword" placeholder="Пароль">
+            <button class="btn" onclick="login()">Увійти</button>
+            <button class="btn-small" onclick="showRegister()" style="background: #28a745;">Зареєструватися</button>
+        </div>
+    </div>
+
+    <div id="registerPage" class="login-container" style="display: none;">
+        <h2 style="text-align: center;">Реєстрація</h2>
+        <div class="login-form">
+            <input type="text" id="registerName" placeholder="ПІБ">
+            <input type="email" id="registerEmail" placeholder="Email">
+            <input type="password" id="registerPassword" placeholder="Пароль">
+            <select id="registerRole">
+                <option value="student">Учень</option>
+                <option value="teacher">Вчитель</option>
+                <option value="admin">Адміністратор</option>
+            </select>
+            <button class="btn" onclick="register()">Зареєструватися</button>
+            <button class="btn-small" onclick="showLogin()" style="background: #6c757d;">Назад до входу</button>
+        </div>
+    </div>
+
+    <div id="mainPage" class="container" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
             <h1>🏫 Управління школою: <span id="schoolTitle">Нова школа</span></h1>
-            <button class="btn-small" onclick="logout()" style="background: #ff6b6b;">← На головну</button>
+            <div>
+                <span id="currentUser" style="margin-right: 15px;"></span>
+                <button class="btn-small" onclick="logout()" style="background: #ff6b6b;">Вийти</button>
+            </div>
         </div>
 
         <div class="stats">
@@ -157,6 +201,7 @@
 
         <div class="tabs">
             <button class="tab active" onclick="openTab('teachers')">👨‍🏫 Вчителі</button>
+            <button class="tab" onclick="openTab('students')">👥 Учні</button>
             <button class="tab" onclick="openTab('classes')">📚 Класи</button>
             <button class="tab" onclick="openTab('schedule')">📅 Розклад</button>
             <button class="tab" onclick="openTab('admins')">⚙️ Адміністратори</button>
@@ -176,6 +221,22 @@
             
             <h3>Список вчителів</h3>
             <div class="user-list" id="teachersList"></div>
+        </div>
+
+        <!-- УЧНІ -->
+        <div id="students" class="tab-content">
+            <h3>Додати нового учня</h3>
+            <div style="display: grid; grid-template-columns: 2fr 2fr 2fr 1fr; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="studentName" placeholder="ПІБ учня">
+                <input type="email" id="studentEmail" placeholder="Email">
+                <select id="studentClass">
+                    <option value="">Оберіть клас</option>
+                </select>
+                <button class="btn-small" onclick="addStudent()">Додати</button>
+            </div>
+            
+            <h3>Список учнів</h3>
+            <div class="user-list" id="studentsList"></div>
         </div>
 
         <!-- КЛАСИ -->
@@ -242,19 +303,141 @@
             teachers: [],
             classes: [],
             admins: [],
-            students: []
+            students: [],
+            users: []
         };
 
+        let currentUser = null;
+
         document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+        });
+
+        function checkAuth() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showMainPage();
+            } else {
+                showLoginPage();
+            }
+        }
+
+        function showLoginPage() {
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('registerPage').style.display = 'none';
+            document.getElementById('mainPage').style.display = 'none';
+        }
+
+        function showRegister() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('registerPage').style.display = 'block';
+            document.getElementById('mainPage').style.display = 'none';
+        }
+
+        function showLogin() {
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('registerPage').style.display = 'none';
+            document.getElementById('mainPage').style.display = 'none';
+        }
+
+        function showMainPage() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('registerPage').style.display = 'none';
+            document.getElementById('mainPage').style.display = 'block';
+            
+            document.getElementById('currentUser').textContent = `Вітаємо, ${currentUser.name} (${getRoleName(currentUser.role)})`;
+            
             updateSchoolTitle();
             updateStats();
             loadTeachers();
+            loadStudents();
             loadClasses();
             loadAdmins();
             loadAllUsers();
             populateTeacherSelect();
             populateClassSelect();
-        });
+            populateStudentClassSelect();
+        }
+
+        function getRoleName(role) {
+            const roles = {
+                'student': 'Учень',
+                'teacher': 'Вчитель',
+                'admin': 'Адміністратор'
+            };
+            return roles[role] || role;
+        }
+
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            const user = schoolData.users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                showMainPage();
+            } else {
+                alert('Невірний email або пароль!');
+            }
+        }
+
+        function register() {
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const role = document.getElementById('registerRole').value;
+            
+            if (name && email && password) {
+                const user = {
+                    id: Date.now(),
+                    name: name,
+                    email: email,
+                    password: password,
+                    role: role
+                };
+                
+                schoolData.users.push(user);
+                saveSchoolData();
+                
+                // Додати до відповідної групи
+                if (role === 'teacher') {
+                    schoolData.teachers.push({
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        subject: 'Не вказано'
+                    });
+                } else if (role === 'student') {
+                    schoolData.students.push({
+                        id: user.id,
+                        name: user.name,
+                        email: user.email,
+                        classId: null
+                    });
+                } else if (role === 'admin') {
+                    schoolData.admins.push({
+                        id: user.id,
+                        name: user.name,
+                        email: user.email
+                    });
+                }
+                
+                saveSchoolData();
+                alert('Реєстрація успішна! Тепер увійдіть у систему.');
+                showLogin();
+            } else {
+                alert('Будь ласка, заповніть всі поля!');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            showLoginPage();
+        }
 
         function updateSchoolTitle() {
             document.getElementById('schoolTitle').textContent = schoolData.name;
@@ -320,6 +503,76 @@
             updateStats();
         }
 
+        function addStudent() {
+            const name = document.getElementById('studentName').value;
+            const email = document.getElementById('studentEmail').value;
+            const classId = document.getElementById('studentClass').value;
+            
+            if (name && email && classId) {
+                const student = {
+                    id: Date.now(),
+                    name: name,
+                    email: email,
+                    classId: parseInt(classId)
+                };
+                
+                schoolData.students.push(student);
+                
+                // Оновити кількість учнів у класі
+                const classItem = schoolData.classes.find(c => c.id == classId);
+                if (classItem) {
+                    classItem.students = (classItem.students || 0) + 1;
+                }
+                
+                saveSchoolData();
+                loadStudents();
+                updateStats();
+                
+                document.getElementById('studentName').value = '';
+                document.getElementById('studentEmail').value = '';
+            } else {
+                alert('Будь ласка, заповніть всі поля!');
+            }
+        }
+
+        function loadStudents() {
+            const list = document.getElementById('studentsList');
+            list.innerHTML = '';
+            
+            schoolData.students.forEach(student => {
+                const classItem = schoolData.classes.find(c => c.id === student.classId);
+                const className = classItem ? classItem.name : 'Не вказано';
+                
+                const item = document.createElement('div');
+                item.className = 'user-item';
+                item.innerHTML = `
+                    <div>
+                        <strong>${student.name}</strong><br>
+                        <small>${student.email} | Клас: ${className}</small>
+                    </div>
+                    <button class="btn-small" style="background: #ff6b6b;" onclick="deleteStudent(${student.id})">Видалити</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function deleteStudent(id) {
+            const student = schoolData.students.find(s => s.id === id);
+            
+            // Оновити кількість учнів у класі
+            if (student && student.classId) {
+                const classItem = schoolData.classes.find(c => c.id === student.classId);
+                if (classItem && classItem.students > 0) {
+                    classItem.students--;
+                }
+            }
+            
+            schoolData.students = schoolData.students.filter(student => student.id !== id);
+            saveSchoolData();
+            loadStudents();
+            updateStats();
+        }
+
         function addClass() {
             const grade = document.getElementById('classGrade').value;
             const letter = document.getElementById('classLetter').value;
@@ -329,7 +582,7 @@
                 const teacher = schoolData.teachers.find(t => t.id == teacherId);
                 const newClass = {
                     id: Date.now(),
-                    name: `${grade}-${letter}`,
+                    name: `${grade}-${letter.toUpperCase()}`,
                     grade: grade,
                     letter: letter,
                     teacher: teacher.name,
@@ -340,6 +593,7 @@
                 saveSchoolData();
                 loadClasses();
                 populateClassSelect();
+                populateStudentClassSelect();
                 updateStats();
                 
                 document.getElementById('classGrade').value = '';
@@ -436,6 +690,12 @@
             schoolData.admins.forEach(user => {
                 addUserToList(list, user.name, user.email, 'Адміністратор', '');
             });
+            
+            schoolData.students.forEach(user => {
+                const classItem = schoolData.classes.find(c => c.id === user.classId);
+                const className = classItem ? classItem.name : 'Не вказано';
+                addUserToList(list, user.name, user.email, 'Учень', className);
+            });
         }
 
         function addUserToList(list, name, email, role, info) {
@@ -474,6 +734,18 @@
             });
         }
 
+        function populateStudentClassSelect() {
+            const select = document.getElementById('studentClass');
+            select.innerHTML = '<option value="">Оберіть клас</option>';
+            
+            schoolData.classes.forEach(classItem => {
+                const option = document.createElement('option');
+                option.value = classItem.id;
+                option.textContent = classItem.name;
+                select.appendChild(option);
+            });
+        }
+
         function loadSchedule() {
             const classId = document.getElementById('scheduleClass').value;
             const display = document.getElementById('scheduleDisplay');
@@ -493,7 +765,7 @@
             localStorage.setItem('schoolData', JSON.stringify(schoolData));
         }
 
-        function openTab(tabName) {
+        function openTab(tabName) {1
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
@@ -503,10 +775,6 @@
             
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
-        }
-
-        function logout() {
-            window.location.href = 'index.html';
         }
     </script>
 </body>
