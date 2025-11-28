@@ -27,6 +27,7 @@
             background: white;
             border-radius: 10px 10px 0 0;
             padding: 0 10px;
+            flex-wrap: wrap;
         }
         
         .tab {
@@ -118,10 +119,6 @@
             font-weight: bold;
         }
         
-        .meeting-table tr:nth-child(even) {
-            background: #f8f9fa;
-        }
-        
         .info-link {
             color: #667eea;
             cursor: pointer;
@@ -158,7 +155,6 @@
                 Адмін: admin@school.com / admin123
             </div>
             
-            <!-- ТАБЛИЧКА ПРО ЗАСІДАННЯ -->
             <table class="meeting-table">
                 <thead>
                     <tr>
@@ -198,15 +194,15 @@
         <div id="school" class="tab-content">
             <h2>Реєстрація закладу освіти</h2>
             
-            <input type="text" placeholder="Назва закладу">
-            <input type="email" placeholder="Email директора">
-            <input type="text" placeholder="Адреса">
-            <input type="tel" placeholder="Телефон">
-            <select>
-                <option>Тип закладу</option>
-                <option>Школа</option>
-                <option>Ліцей</option>
-                <option>Гімназія</option>
+            <input type="text" id="schoolName" placeholder="Назва закладу">
+            <input type="email" id="schoolEmail" placeholder="Email директора">
+            <input type="text" id="schoolAddress" placeholder="Адреса">
+            <input type="tel" id="schoolPhone" placeholder="Телефон">
+            <select id="schoolType">
+                <option value="">Тип закладу</option>
+                <option value="school">Школа</option>
+                <option value="lyceum">Ліцей</option>
+                <option value="gymnasium">Гімназія</option>
             </select>
             <button class="btn" onclick="registerSchool()">Зареєструвати заклад</button>
         </div>
@@ -225,9 +221,9 @@
         emailjs.init("G0J3Izq0LA9Bgb4X0");
 
         const demoUsers = {
-            "admin@school.com": "admin123",
-            "teacher@school.com": "teacher123", 
-            "student@school.com": "student123"
+            "admin@school.com": {password: "admin123", role: "admin"},
+            "teacher@school.com": {password: "teacher123", role: "teacher"}, 
+            "student@school.com": {password: "student123", role: "student"}
         };
 
         function openTab(tabName) {
@@ -246,33 +242,53 @@
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             
-            if(demoUsers[email] === password) {
-                // Зберігаємо дані про вхід
-                localStorage.setItem('currentUser', email);
-                localStorage.setItem('userRole', getRoleByEmail(email));
-                
-                // Переходимо на dashboard
-                window.location.href = 'dashboard.html';
+            if(demoUsers[email] && demoUsers[email].password === password) {
+                window.location.href = 'dashboard.html?email=' + email + '&role=' + demoUsers[email].role;
             } else {
                 alert('❌ Невірний email або пароль!');
             }
         }
 
-        function getRoleByEmail(email) {
-            if(email === 'admin@school.com') return 'admin';
-            if(email === 'teacher@school.com') return 'teacher';
-            if(email === 'student@school.com') return 'student';
-            return 'user';
-        }
-
         function registerSchool() {
-            alert('✅ Заявку надіслано! Ми зв\'яжемося з вами для реєстрації.');
+            const schoolName = document.getElementById('schoolName').value;
+            const email = document.getElementById('schoolEmail').value;
+            const address = document.getElementById('schoolAddress').value;
+            const phone = document.getElementById('schoolPhone').value;
+            const type = document.getElementById('schoolType').value;
+            
+            if(schoolName && email) {
+                const schoolData = {
+                    name: schoolName,
+                    email: email,
+                    address: address,
+                    phone: phone,
+                    type: type,
+                    teachers: [],
+                    classes: [],
+                    admins: [
+                        {
+                            id: Date.now(),
+                            name: 'Директор',
+                            email: email
+                        }
+                    ],
+                    students: [],
+                    website: ''
+                };
+                
+                localStorage.setItem('schoolData', JSON.stringify(schoolData));
+                window.location.href = 'school-admin.html';
+            } else {
+                alert('Будь ласка, заповніть назву школи та email!');
+            }
         }
 
         function sendRecoveryCode() {
             const email = prompt("Введіть ваш email для відновлення пароля:");
+            
             if(email) {
                 const code = Math.floor(100000 + Math.random() * 900000);
+                
                 emailjs.send("service_ydertiz", "template_xxxxx", {
                     to_email: email,
                     КОД_ДОСТУПА: code
