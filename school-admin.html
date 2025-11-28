@@ -1,172 +1,94 @@
-iv>
-                `;
-                list.appendChild(card);
-            });
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
         }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        .btn {
+            padding: 14px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏫 Тестова сторінка школи</h1>
+        
+        <div id="debugInfo" style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <h3>Інформація про дані:</h3>
+            <div id="dataStatus"></div>
+        </div>
+        
+        <button class="btn" onclick="checkData()">Перевірити дані</button>
+        <button class="btn" onclick="createTestData()">Створити тестові дані</button>
+        <button class="btn" onclick="goBack()">← На головну</button>
+    </div>
 
-        function addAdmin() {
-            const name = document.getElementById('adminName').value;
-            const email = document.getElementById('adminEmail').value;
+    <script>
+        function checkData() {
+            const schoolData = localStorage.getItem('schoolData');
+            const statusDiv = document.getElementById('dataStatus');
             
-            if (name && email) {
-                const password = generatePassword();
-                const admin = {
-                    id: Date.now(),
-                    name: name,
-                    email: email,
-                    password: password,
-                    login: email,
-                    role: 'admin'
-                };
-                
-                schoolData.admins.push(admin);
-                saveSchoolData();
-                loadAdmins();
-                updateStats();
-                
-                showPasswordModal(name, email, password);
-                document.getElementById('adminName').value = '';
-                document.getElementById('adminEmail').value = '';
-            } else {
-                alert('Будь ласка, заповніть всі поля!');
-            }
-        }
-
-        function loadAdmins() {
-            const list = document.getElementById('adminsList');
-            list.innerHTML = '';
-            
-            schoolData.admins.forEach(admin => {
-                const item = document.createElement('div');
-                item.className = 'user-item';
-                item.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <div class="user-avatar">${admin.name.charAt(0)}</div>
-                        <div>
-                            <strong>${admin.name}</strong><br>
-                            <small>${admin.email}</small><br>
-                            <small style="color: #718096;">Логін: ${admin.login}</small>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span class="password-badge">Пароль: ${admin.password}</span>
-                        <button class="btn btn-danger btn-small" onclick="deleteAdmin(${admin.id})">🗑️ Видалити</button>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        function deleteAdmin(id) {
-            if (confirm('Ви впевнені, що хочете видалити цього адміністратора?')) {
-                schoolData.admins = schoolData.admins.filter(admin => admin.id !== id);
-                saveSchoolData();
-                loadAdmins();
-                updateStats();
-            }
-        }
-
-        function saveWebsite() {
-            const website = document.getElementById('schoolWebsite').value;
-            schoolData.website = website;
-            saveSchoolData();
-            
-            const status = document.getElementById('websiteStatus');
-            status.textContent = '✅ Сайт успішно збережено!';
-            status.style.background = '#c6f6d5';
-            status.style.color = '#22543d';
-            status.style.display = 'block';
-        }
-
-        function loadAllUsers() {
-            const list = document.getElementById('allUsersList');
-            list.innerHTML = '';
-            
-            schoolData.teachers.forEach(user => {
-                addUserToList(list, user.name, user.email, 'Вчитель', user.subject, user.password);
-            });
-            
-            schoolData.admins.forEach(user => {
-                addUserToList(list, user.name, user.email, 'Адміністратор', '', user.password);
-            });
-        }
-
-        function addUserToList(list, name, email, role, info, password) {
-            const item = document.createElement('div');
-            item.className = 'user-item';
-            item.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 15px;">
-                    <div class="user-avatar">${name.charAt(0)}</div>
-                    <div>
-                        <strong>${name}</strong><br>
-                        <small>${email} | ${role} ${info ? '| ' + info : ''}</small><br>
-                        <small style="color: #718096;">Логін: ${email} | Пароль: ${password}</small>
-                    </div>
-                </div>
-            `;
-            list.appendChild(item);
-        }
-
-        function populateTeacherSelect() {
-            const select = document.getElementById('classTeacher');
-            select.innerHTML = '<option value="">Оберіть вчителя</option>';
-            
-            schoolData.teachers.forEach(teacher => {
-                const option = document.createElement('option');
-                option.value = teacher.id;
-                option.textContent = `${teacher.name} (${teacher.subject})`;
-                select.appendChild(option);
-            });
-        }
-
-        function populateClassSelect() {
-            const select = document.getElementById('scheduleClass');
-            select.innerHTML = '<option value="">Оберіть клас</option>';
-            
-            schoolData.classes.forEach(classItem => {
-                const option = document.createElement('option');
-                option.value = classItem.id;
-                option.textContent = classItem.name;
-                select.appendChild(option);
-            });
-        }
-
-        function loadSchedule() {
-            const classId = document.getElementById('scheduleClass').value;
-            const display = document.getElementById('scheduleDisplay');
-            
-            if (classId) {
-                const classItem = schoolData.classes.find(c => c.id == classId);
-                display.innerHTML = `
-                    <h4 style="color: #2d3748; margin-bottom: 20px;">📅 Розклад для ${classItem.name}</h4>
-                    <div style="background: white; padding: 20px; border-radius: 10px;">
-                        <p style="color: #718096;">Функціонал розкладу буде додано найближчим часом</p>
-                    </div>
+            if (schoolData) {
+                const data = JSON.parse(schoolData);
+                statusDiv.innerHTML = `
+                    <p style="color: green;">✅ Дані знайдено!</p>
+                    <p><strong>Назва школи:</strong> ${data.name}</p>
+                    <p><strong>Email:</strong> ${data.email}</p>
+                    <p><strong>Вчителі:</strong> ${data.teachers.length}</p>
+                    <p><strong>Класи:</strong> ${data.classes.length}</p>
                 `;
             } else {
-                display.innerHTML = '<p style="color: #a0aec0; font-size: 18px;">🎓 Оберіть клас для перегляду розкладу занять</p>';
+                statusDiv.innerHTML = '<p style="color: red;">❌ Дані не знайдено в localStorage</p>';
             }
         }
 
-        function saveSchoolData() {
-            localStorage.setItem('schoolData', JSON.stringify(schoolData));
-        }
-
-        function openTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
+        function createTestData() {
+            const testData = {
+                name: 'Тестова школа',
+                email: 'test@school.com',
+                teachers: [
+                    {
+                        id: 1,
+                        name: 'Тестовий вчитель',
+                        email: 'teacher@school.com',
+                        subject: 'Математика',
+                        password: 'test123'
+                    }
+                ],
+                classes: [],
+                admins: [],
+                students: []
+            };
             
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
+            localStorage.setItem('schoolData', JSON.stringify(testData));
+            alert('✅ Тестові дані створено!');
+            checkData();
         }
 
-        function logout() {
+        function goBack() {
             window.location.href = 'index.html';
         }
+
+        // Автоматично перевіряємо дані при завантаженні
+        checkData();
     </script>
 </body>
 </html>
