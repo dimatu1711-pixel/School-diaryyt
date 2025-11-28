@@ -1,6 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управління школою</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -31,6 +34,11 @@
             border: none;
             cursor: pointer;
             border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab:hover {
+            background-color: #f5f5f5;
         }
         
         .tab.active {
@@ -41,14 +49,23 @@
         
         .tab-content {
             display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
         
         .tab-content.active {
             display: block;
         }
         
-        h2 {
+        h1, h2, h3 {
             color: #333;
+        }
+        
+        h2 {
             margin-bottom: 20px;
         }
         
@@ -58,6 +75,13 @@
             margin: 8px 0;
             border: 2px solid #e1e1e1;
             border-radius: 8px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        
+        input:focus, select:focus {
+            border-color: #667eea;
+            outline: none;
         }
         
         .btn {
@@ -69,12 +93,25 @@
             color: white;
             cursor: pointer;
             width: 100%;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5a6fd8;
         }
         
         .btn-small {
             padding: 8px 15px;
             width: auto;
             margin: 5px;
+        }
+        
+        .btn-danger {
+            background: #ff6b6b;
+        }
+        
+        .btn-danger:hover {
+            background: #ff5252;
         }
         
         .user-list {
@@ -90,6 +127,12 @@
             border-radius: 8px;
             margin: 10px 0;
             background: #f8f9fa;
+            transition: transform 0.2s;
+        }
+        
+        .user-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         
         .class-grid {
@@ -104,11 +147,17 @@
             border: 1px solid #e1e1e1;
             border-radius: 8px;
             background: #f8f9fa;
+            transition: transform 0.2s;
+        }
+        
+        .class-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
         
         .stats {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin: 20px 0;
         }
@@ -119,6 +168,12 @@
             color: white;
             border-radius: 8px;
             text-align: center;
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
         
         .form-row {
@@ -127,57 +182,68 @@
             gap: 10px;
             margin-bottom: 20px;
         }
-
-        .login-container {
-            max-width: 400px;
-            margin: 100px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
-
-        .login-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        
+        .schedule-table th, .schedule-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        
+        .schedule-table th {
+            background-color: #667eea;
+            color: white;
+        }
+        
+        .schedule-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .notification {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .notification.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .notification.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                width: 100%;
+                text-align: left;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="loginPage" class="login-container" style="display: none;">
-        <h2 style="text-align: center;">Вхід до системи</h2>
-        <div class="login-form">
-            <input type="email" id="loginEmail" placeholder="Email">
-            <input type="password" id="loginPassword" placeholder="Пароль">
-            <button class="btn" onclick="login()">Увійти</button>
-            <button class="btn-small" onclick="showRegister()" style="background: #28a745;">Зареєструватися</button>
-        </div>
-    </div>
-
-    <div id="registerPage" class="login-container" style="display: none;">
-        <h2 style="text-align: center;">Реєстрація</h2>
-        <div class="login-form">
-            <input type="text" id="registerName" placeholder="ПІБ">
-            <input type="email" id="registerEmail" placeholder="Email">
-            <input type="password" id="registerPassword" placeholder="Пароль">
-            <select id="registerRole">
-                <option value="student">Учень</option>
-                <option value="teacher">Вчитель</option>
-                <option value="admin">Адміністратор</option>
-            </select>
-            <button class="btn" onclick="register()">Зареєструватися</button>
-            <button class="btn-small" onclick="showLogin()" style="background: #6c757d;">Назад до входу</button>
-        </div>
-    </div>
-
-    <div id="mainPage" class="container" style="display: none;">
+    <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
             <h1>🏫 Управління школою: <span id="schoolTitle">Нова школа</span></h1>
-            <div>
-                <span id="currentUser" style="margin-right: 15px;"></span>
-                <button class="btn-small" onclick="logout()" style="background: #ff6b6b;">Вийти</button>
-            </div>
+            <button class="btn-small btn-danger" onclick="logout()">← На головну</button>
         </div>
 
         <div class="stats">
@@ -211,6 +277,9 @@
 
         <!-- ВЧИТЕЛІ -->
         <div id="teachers" class="tab-content active">
+            <h2>Управління вчителями</h2>
+            <div class="notification" id="teacherNotification"></div>
+            
             <h3>Додати нового вчителя</h3>
             <div class="form-row">
                 <input type="text" id="teacherName" placeholder="ПІБ вчителя">
@@ -225,6 +294,9 @@
 
         <!-- УЧНІ -->
         <div id="students" class="tab-content">
+            <h2>Управління учнями</h2>
+            <div class="notification" id="studentNotification"></div>
+            
             <h3>Додати нового учня</h3>
             <div style="display: grid; grid-template-columns: 2fr 2fr 2fr 1fr; gap: 10px; margin-bottom: 20px;">
                 <input type="text" id="studentName" placeholder="ПІБ учня">
@@ -241,6 +313,9 @@
 
         <!-- КЛАСИ -->
         <div id="classes" class="tab-content">
+            <h2>Управління класами</h2>
+            <div class="notification" id="classNotification"></div>
+            
             <h3>Додати новий клас</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr 2fr 1fr; gap: 10px; margin-bottom: 20px;">
                 <input type="number" id="classGrade" placeholder="Клас" min="1" max="11">
@@ -257,7 +332,7 @@
 
         <!-- РОЗКЛАД -->
         <div id="schedule" class="tab-content">
-            <h3>Розклад занять</h3>
+            <h2>Розклад занять</h2>
             <div style="margin-bottom: 20px;">
                 <select id="scheduleClass" onchange="loadSchedule()">
                     <option value="">Оберіть клас</option>
@@ -270,6 +345,9 @@
 
         <!-- АДМІНІСТРАТОРИ -->
         <div id="admins" class="tab-content">
+            <h2>Управління адміністраторами</h2>
+            <div class="notification" id="adminNotification"></div>
+            
             <h3>Додати адміністратора</h3>
             <div style="display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 10px; margin-bottom: 20px;">
                 <input type="text" id="adminName" placeholder="ПІБ адміністратора">
@@ -283,15 +361,16 @@
 
         <!-- САЙТ ШКОЛИ -->
         <div id="website" class="tab-content">
-            <h3>Налаштування сайту школи</h3>
+            <h2>Налаштування сайту школи</h2>
+            <div class="notification" id="websiteNotification"></div>
+            
             <input type="url" id="schoolWebsite" placeholder="https://www.ваша-школа.com" style="margin-bottom: 15px;">
             <button class="btn" onclick="saveWebsite()">💾 Зберегти сайт</button>
-            <div id="websiteStatus" style="margin-top: 15px; padding: 10px; border-radius: 5px; display: none;"></div>
         </div>
 
         <!-- ВСІ КОРИСТУВАЧІ -->
         <div id="users" class="tab-content">
-            <h3>Всі користувачі школи</h3>
+            <h2>Всі користувачі школи</h2>
             <div class="user-list" id="allUsersList"></div>
         </div>
     </div>
@@ -303,51 +382,10 @@
             teachers: [],
             classes: [],
             admins: [],
-            students: [],
-            users: []
+            students: []
         };
 
-        let currentUser = null;
-
         document.addEventListener('DOMContentLoaded', function() {
-            checkAuth();
-        });
-
-        function checkAuth() {
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                showMainPage();
-            } else {
-                showLoginPage();
-            }
-        }
-
-        function showLoginPage() {
-            document.getElementById('loginPage').style.display = 'block';
-            document.getElementById('registerPage').style.display = 'none';
-            document.getElementById('mainPage').style.display = 'none';
-        }
-
-        function showRegister() {
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('registerPage').style.display = 'block';
-            document.getElementById('mainPage').style.display = 'none';
-        }
-
-        function showLogin() {
-            document.getElementById('loginPage').style.display = 'block';
-            document.getElementById('registerPage').style.display = 'none';
-            document.getElementById('mainPage').style.display = 'none';
-        }
-
-        function showMainPage() {
-            document.getElementById('loginPage').style.display = 'none';
-            document.getElementById('registerPage').style.display = 'none';
-            document.getElementById('mainPage').style.display = 'block';
-            
-            document.getElementById('currentUser').textContent = `Вітаємо, ${currentUser.name} (${getRoleName(currentUser.role)})`;
-            
             updateSchoolTitle();
             updateStats();
             loadTeachers();
@@ -358,86 +396,7 @@
             populateTeacherSelect();
             populateClassSelect();
             populateStudentClassSelect();
-        }
-
-        function getRoleName(role) {
-            const roles = {
-                'student': 'Учень',
-                'teacher': 'Вчитель',
-                'admin': 'Адміністратор'
-            };
-            return roles[role] || role;
-        }
-
-        function login() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            const user = schoolData.users.find(u => u.email === email && u.password === password);
-            
-            if (user) {
-                currentUser = user;
-                localStorage.setItem('currentUser', JSON.stringify(user));
-                showMainPage();
-            } else {
-                alert('Невірний email або пароль!');
-            }
-        }
-
-        function register() {
-            const name = document.getElementById('registerName').value;
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            const role = document.getElementById('registerRole').value;
-            
-            if (name && email && password) {
-                const user = {
-                    id: Date.now(),
-                    name: name,
-                    email: email,
-                    password: password,
-                    role: role
-                };
-                
-                schoolData.users.push(user);
-                saveSchoolData();
-                
-                // Додати до відповідної групи
-                if (role === 'teacher') {
-                    schoolData.teachers.push({
-                        id: user.id,
-                        name: user.name,
-                        email: user.email,
-                        subject: 'Не вказано'
-                    });
-                } else if (role === 'student') {
-                    schoolData.students.push({
-                        id: user.id,
-                        name: user.name,
-                        email: user.email,
-                        classId: null
-                    });
-                } else if (role === 'admin') {
-                    schoolData.admins.push({
-                        id: user.id,
-                        name: user.name,
-                        email: user.email
-                    });
-                }
-                
-                saveSchoolData();
-                alert('Реєстрація успішна! Тепер увійдіть у систему.');
-                showLogin();
-            } else {
-                alert('Будь ласка, заповніть всі поля!');
-            }
-        }
-
-        function logout() {
-            currentUser = null;
-            localStorage.removeItem('currentUser');
-            showLoginPage();
-        }
+        });
 
         function updateSchoolTitle() {
             document.getElementById('schoolTitle').textContent = schoolData.name;
@@ -448,6 +407,17 @@
             document.getElementById('studentsCount').textContent = schoolData.students.length;
             document.getElementById('classesCount').textContent = schoolData.classes.length;
             document.getElementById('adminsCount').textContent = schoolData.admins.length;
+        }
+
+        function showNotification(elementId, message, type) {
+            const notification = document.getElementById(elementId);
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
         }
 
         function addTeacher() {
@@ -472,14 +442,21 @@
                 document.getElementById('teacherName').value = '';
                 document.getElementById('teacherEmail').value = '';
                 document.getElementById('teacherSubject').value = '';
+                
+                showNotification('teacherNotification', 'Вчителя успішно додано!', 'success');
             } else {
-                alert('Будь ласка, заповніть всі поля!');
+                showNotification('teacherNotification', 'Будь ласка, заповніть всі поля!', 'error');
             }
         }
 
         function loadTeachers() {
             const list = document.getElementById('teachersList');
             list.innerHTML = '';
+            
+            if (schoolData.teachers.length === 0) {
+                list.innerHTML = '<p>Ще немає доданих вчителів</p>';
+                return;
+            }
             
             schoolData.teachers.forEach(teacher => {
                 const item = document.createElement('div');
@@ -489,18 +466,21 @@
                         <strong>${teacher.name}</strong><br>
                         <small>${teacher.email} | ${teacher.subject}</small>
                     </div>
-                    <button class="btn-small" style="background: #ff6b6b;" onclick="deleteTeacher(${teacher.id})">Видалити</button>
+                    <button class="btn-small btn-danger" onclick="deleteTeacher(${teacher.id})">Видалити</button>
                 `;
                 list.appendChild(item);
             });
         }
 
         function deleteTeacher(id) {
-            schoolData.teachers = schoolData.teachers.filter(teacher => teacher.id !== id);
-            saveSchoolData();
-            loadTeachers();
-            populateTeacherSelect();
-            updateStats();
+            if (confirm('Ви впевнені, що хочете видалити цього вчителя?')) {
+                schoolData.teachers = schoolData.teachers.filter(teacher => teacher.id !== id);
+                saveSchoolData();
+                loadTeachers();
+                populateTeacherSelect();
+                updateStats();
+                showNotification('teacherNotification', 'Вчителя успішно видалено!', 'success');
+            }
         }
 
         function addStudent() {
@@ -530,14 +510,21 @@
                 
                 document.getElementById('studentName').value = '';
                 document.getElementById('studentEmail').value = '';
+                
+                showNotification('studentNotification', 'Учня успішно додано!', 'success');
             } else {
-                alert('Будь ласка, заповніть всі поля!');
+                showNotification('studentNotification', 'Будь ласка, заповніть всі поля!', 'error');
             }
         }
 
         function loadStudents() {
             const list = document.getElementById('studentsList');
             list.innerHTML = '';
+            
+            if (schoolData.students.length === 0) {
+                list.innerHTML = '<p>Ще немає доданих учнів</p>';
+                return;
+            }
             
             schoolData.students.forEach(student => {
                 const classItem = schoolData.classes.find(c => c.id === student.classId);
@@ -550,27 +537,30 @@
                         <strong>${student.name}</strong><br>
                         <small>${student.email} | Клас: ${className}</small>
                     </div>
-                    <button class="btn-small" style="background: #ff6b6b;" onclick="deleteStudent(${student.id})">Видалити</button>
+                    <button class="btn-small btn-danger" onclick="deleteStudent(${student.id})">Видалити</button>
                 `;
                 list.appendChild(item);
             });
         }
 
         function deleteStudent(id) {
-            const student = schoolData.students.find(s => s.id === id);
-            
-            // Оновити кількість учнів у класі
-            if (student && student.classId) {
-                const classItem = schoolData.classes.find(c => c.id === student.classId);
-                if (classItem && classItem.students > 0) {
-                    classItem.students--;
+            if (confirm('Ви впевнені, що хочете видалити цього учня?')) {
+                const student = schoolData.students.find(s => s.id === id);
+                
+                // Оновити кількість учнів у класі
+                if (student) {
+                    const classItem = schoolData.classes.find(c => c.id === student.classId);
+                    if (classItem && classItem.students > 0) {
+                        classItem.students--;
+                    }
                 }
+                
+                schoolData.students = schoolData.students.filter(student => student.id !== id);
+                saveSchoolData();
+                loadStudents();
+                updateStats();
+                showNotification('studentNotification', 'Учня успішно видалено!', 'success');
             }
-            
-            schoolData.students = schoolData.students.filter(student => student.id !== id);
-            saveSchoolData();
-            loadStudents();
-            updateStats();
         }
 
         function addClass() {
@@ -583,9 +573,10 @@
                 const newClass = {
                     id: Date.now(),
                     name: `${grade}-${letter.toUpperCase()}`,
-                    grade: grade,
-                    letter: letter,
+                    grade: parseInt(grade),
+                    letter: letter.toUpperCase(),
                     teacher: teacher.name,
+                    teacherId: parseInt(teacherId),
                     students: 0
                 };
                 
@@ -598,8 +589,10 @@
                 
                 document.getElementById('classGrade').value = '';
                 document.getElementById('classLetter').value = '';
+                
+                showNotification('classNotification', 'Клас успішно додано!', 'success');
             } else {
-                alert('Будь ласка, заповніть всі поля!');
+                showNotification('classNotification', 'Будь ласка, заповніть всі поля!', 'error');
             }
         }
 
@@ -607,12 +600,17 @@
             const list = document.getElementById('classesList');
             list.innerHTML = '';
             
+            if (schoolData.classes.length === 0) {
+                list.innerHTML = '<p>Ще немає доданих класів</p>';
+                return;
+            }
+            
             schoolData.classes.forEach(classItem => {
                 const card = document.createElement('div');
                 card.className = 'class-card';
                 card.innerHTML = `
                     <strong>${classItem.name}</strong><br>
-                    Учнів: ${classItem.students}<br>
+                    Учнів: ${classItem.students || 0}<br>
                     Вчитель: ${classItem.teacher}
                 `;
                 list.appendChild(card);
@@ -637,14 +635,21 @@
                 
                 document.getElementById('adminName').value = '';
                 document.getElementById('adminEmail').value = '';
+                
+                showNotification('adminNotification', 'Адміністратора успішно додано!', 'success');
             } else {
-                alert('Будь ласка, заповніть всі поля!');
+                showNotification('adminNotification', 'Будь ласка, заповніть всі поля!', 'error');
             }
         }
 
         function loadAdmins() {
             const list = document.getElementById('adminsList');
             list.innerHTML = '';
+            
+            if (schoolData.admins.length === 0) {
+                list.innerHTML = '<p>Ще немає доданих адміністраторів</p>';
+                return;
+            }
             
             schoolData.admins.forEach(admin => {
                 const item = document.createElement('div');
@@ -654,17 +659,20 @@
                         <strong>${admin.name}</strong><br>
                         <small>${admin.email}</small>
                     </div>
-                    <button class="btn-small" style="background: #ff6b6b;" onclick="deleteAdmin(${admin.id})">Видалити</button>
+                    <button class="btn-small btn-danger" onclick="deleteAdmin(${admin.id})">Видалити</button>
                 `;
                 list.appendChild(item);
             });
         }
 
         function deleteAdmin(id) {
-            schoolData.admins = schoolData.admins.filter(admin => admin.id !== id);
-            saveSchoolData();
-            loadAdmins();
-            updateStats();
+            if (confirm('Ви впевнені, що хочете видалити цього адміністратора?')) {
+                schoolData.admins = schoolData.admins.filter(admin => admin.id !== id);
+                saveSchoolData();
+                loadAdmins();
+                updateStats();
+                showNotification('adminNotification', 'Адміністратора успішно видалено!', 'success');
+            }
         }
 
         function saveWebsite() {
@@ -672,16 +680,17 @@
             schoolData.website = website;
             saveSchoolData();
             
-            const status = document.getElementById('websiteStatus');
-            status.textContent = '✅ Сайт успішно збережено!';
-            status.style.background = '#d4edda';
-            status.style.color = '#155724';
-            status.style.display = 'block';
+            showNotification('websiteNotification', 'Сайт успішно збережено!', 'success');
         }
 
         function loadAllUsers() {
             const list = document.getElementById('allUsersList');
             list.innerHTML = '';
+            
+            if (schoolData.teachers.length === 0 && schoolData.admins.length === 0 && schoolData.students.length === 0) {
+                list.innerHTML = '<p>Ще немає доданих користувачів</p>';
+                return;
+            }
             
             schoolData.teachers.forEach(user => {
                 addUserToList(list, user.name, user.email, 'Вчитель', user.subject);
@@ -752,10 +761,49 @@
             
             if (classId) {
                 const classItem = schoolData.classes.find(c => c.id == classId);
-                display.innerHTML = `
-                    <h4>Розклад для ${classItem.name}</h4>
-                    <p>Тут буде розклад занять для обраного класу...</p>
+                
+                // Приклад розкладу (можна розширити для реального використання)
+                const schedule = [
+                    { day: 'Понеділок', lessons: ['Математика', 'Українська мова', 'Фізика', 'Історія'] },
+                    { day: 'Вівторок', lessons: ['Англійська мова', 'Біологія', 'Хімія', 'Географія'] },
+                    { day: 'Середа', lessons: ['Фізкультура', 'Інформатика', 'Мистецтво', 'Література'] },
+                    { day: 'Четвер', lessons: ['Математика', 'Фізика', 'Українська мова', 'Історія'] },
+                    { day: "П'ятниця", lessons: ['Біологія', 'Хімія', 'Англійська мова', 'Фізкультура'] }
+                ];
+                
+                let scheduleHTML = `
+                    <h3>Розклад для ${classItem.name}</h3>
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th>День</th>
+                                <th>1 урок</th>
+                                <th>2 урок</th>
+                                <th>3 урок</th>
+                                <th>4 урок</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                 `;
+                
+                schedule.forEach(daySchedule => {
+                    scheduleHTML += `
+                        <tr>
+                            <td><strong>${daySchedule.day}</strong></td>
+                            <td>${daySchedule.lessons[0]}</td>
+                            <td>${daySchedule.lessons[1]}</td>
+                            <td>${daySchedule.lessons[2]}</td>
+                            <td>${daySchedule.lessons[3]}</td>
+                        </tr>
+                    `;
+                });
+                
+                scheduleHTML += `
+                        </tbody>
+                    </table>
+                `;
+                
+                display.innerHTML = scheduleHTML;
             } else {
                 display.innerHTML = '<p>Оберіть клас для перегляду розкладу</p>';
             }
@@ -765,7 +813,7 @@
             localStorage.setItem('schoolData', JSON.stringify(schoolData));
         }
 
-        function openTab(tabName) {1
+        function openTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
@@ -775,6 +823,10 @@
             
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
+        }
+
+        function logout() {
+            window.location.href = 'index.html';
         }
     </script>
 </body>
