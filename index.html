@@ -5,88 +5,32 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 500px;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         
         .container {
             background: white;
-            padding: 40px 30px;
+            padding: 30px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            width: 100%;
-        }
-        
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 24px;
-        }
-        
-        input {
-            width: 100%;
-            padding: 12px 15px;
-            margin: 8px 0;
-            border: 2px solid #e1e1e1;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border 0.3s;
-        }
-        
-        input:focus {
-            border-color: #667eea;
-            outline: none;
-        }
-        
-        .btn {
-            padding: 12px 20px;
-            margin: 8px 0;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 500;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            width: 100%;
-        }
-        
-        .btn-secondary {
-            background: #f8f9fa;
-            color: #333;
-            border: 2px solid #e1e1e1;
-            width: 100%;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            margin-top: 20px;
         }
         
         .tabs {
             display: flex;
             margin-bottom: 20px;
             border-bottom: 2px solid #e1e1e1;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            padding: 0 10px;
         }
         
         .tab {
-            flex: 1;
-            padding: 15px;
+            padding: 15px 20px;
             text-align: center;
             background: none;
             border: none;
@@ -110,130 +54,204 @@
             display: block;
         }
         
-        .info-message {
-            background: #f8f9fa;
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            margin: 8px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .demo-accounts {
+            background: #e7f3ff;
             padding: 15px;
             border-radius: 8px;
             margin: 15px 0;
-            text-align: center;
-            color: #666;
-        }
-        
-        .loader {
-            border: 3px solid #f3f3f3;
-            border-radius: 50%;
-            border-top: 3px solid #667eea;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .admin-panel {
-            background: #e8f4fd;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
+            font-size: 14px;
         }
         
         .forgot-link {
             text-align: center;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #e1e1e1;
-        }
-        
-        .forgot-link a {
+            margin: 15px 0;
             color: #667eea;
-            text-decoration: none;
-            font-size: 14px;
+            cursor: pointer;
         }
         
-        .forgot-link a:hover {
+        .meeting-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .meeting-table th, .meeting-table td {
+            border: 1px solid #e1e1e1;
+            padding: 15px;
+            text-align: left;
+        }
+        
+        .meeting-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .meeting-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .meeting-table tr:hover {
+            background: #e7f3ff;
+        }
+        
+        .info-link {
+            color: #667eea;
+            cursor: pointer;
             text-decoration: underline;
+            font-weight: bold;
+        }
+        
+        .doc-viewer {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .meeting-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-planned {
+            background: #fff3cd;
+            color: #856404;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="tabs">
-            <button class="tab active" onclick="showTab('login')">🔐 Вхід</button>
-            <button class="tab" onclick="showTab('school')">🏫 Реєстрація школи</button>
-        </div>
+    <div class="tabs">
+        <button class="tab active" onclick="openTab('login')">🔐 Вхід</button>
+        <button class="tab" onclick="openTab('school')">🏫 Реєстрація школи</button>
+        <button class="tab" onclick="openTab('info')">📋 Інформація</button>
+    </div>
 
+    <div class="container">
         <!-- ВХІД -->
         <div id="login" class="tab-content active">
             <h2>Вхід до системи</h2>
-            <div class="info-message">
-                Доступ надається адміністратором школи
-            </div>
-            <input type="email" id="loginEmail" placeholder="Email">
-            <input type="password" id="loginPassword" placeholder="Пароль">
-            <button class="btn btn-primary" onclick="login()">Увійти</button>
             
-            <div class="forgot-link">
-                <a href="#" onclick="showTab('forgot')">Забули пароль?</a>
+            <div class="demo-accounts">
+                <strong>Демо-акаунти для тесту:</strong><br>
+                Учень: student@school.com / student123<br>
+                Вчитель: teacher@school.com / teacher123<br>
+                Адмін: admin@school.com / admin123
+            </div>
+            
+            <!-- ТАБЛИЧКА ПРО ЗАСІДАННЯ -->
+            <table class="meeting-table">
+                <thead>
+                    <tr>
+                        <th colspan="3">📅 Інформація про засідання</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Засідання №1</strong></td>
+                        <td>З питань захисту даних</td>
+                        <td>
+                            <span class="meeting-status status-completed">Проведено</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Дата</strong></td>
+                        <td>25 листопада 2024</td>
+                        <td>
+                            <span class="info-link" onclick="openTab('info')">
+                                Детальніше →
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Статус</strong></td>
+                        <td>Рішення прийнято</td>
+                        <td>
+                            <span class="meeting-status status-completed">Завершено</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <input type="text" id="loginEmail" placeholder="Email">
+            <input type="password" id="loginPassword" placeholder="Пароль">
+            <button class="btn" onclick="login()">Увійти</button>
+            
+            <div class="forgot-link" onclick="sendRecoveryCode()">
+                Забули пароль?
             </div>
         </div>
 
         <!-- РЕЄСТРАЦІЯ ШКОЛИ -->
         <div id="school" class="tab-content">
             <h2>Реєстрація закладу освіти</h2>
-            <input type="text" id="schoolName" placeholder="Назва закладу">
-            <input type="email" id="adminEmail" placeholder="Email директора">
-            <input type="text" id="schoolAddress" placeholder="Адреса">
-            <input type="tel" id="schoolPhone" placeholder="Телефон">
-            <select id="schoolType">
-                <option value="">Тип закладу</option>
-                <option value="school">Школа</option>
-                <option value="lyceum">Ліцей</option>
-                <option value="gymnasium">Гімназія</option>
+            
+            <input type="text" placeholder="Назва закладу">
+            <input type="email" placeholder="Email директора">
+            <input type="text" placeholder="Адреса">
+            <input type="tel" placeholder="Телефон">
+            <select>
+                <option>Тип закладу</option>
+                <option>Школа</option>
+                <option>Ліцей</option>
+                <option>Гімназія</option>
             </select>
-            <button class="btn btn-primary" onclick="registerSchool()">Зареєструвати заклад</button>
+            <button class="btn" onclick="registerSchool()">Зареєструвати заклад</button>
         </div>
 
-        <!-- ВІДНОВЛЕННЯ ПАРОЛЯ -->
-        <div id="forgot" class="tab-content">
-            <h2>Відновлення пароля</h2>
-            <div class="info-message">
-                Код буде відправлено на вашу поштову скриньку
-            </div>
-            <input type="email" id="recoveryEmail" placeholder="Введіть ваш email">
-            <button class="btn btn-primary" id="sendCodeBtn" onclick="sendRecoveryCode()">
-                Надіслати код
-            </button>
+        <!-- ІНФОРМАЦІЯ -->
+        <div id="info" class="tab-content">
+            <h2>Документація засідання</h2>
             
-            <div id="codeSection" style="display:none; margin-top: 20px;">
-                <input type="text" id="recoveryCode" placeholder="Код з email">
-                <input type="password" id="newPassword" placeholder="Новий пароль">
-                <button class="btn btn-primary" onclick="resetPassword()">Змінити пароль</button>
-            </div>
+            <!-- Google Doc переглядач -->
+            <iframe src="https://docs.google.com/document/d/1qSKSLGrN2Cx7igervQC2QEgx0Hy01IF7RryqsNs4WIc/preview" 
+                    class="doc-viewer">
+            </iframe>
             
-            <div class="forgot-link">
-                <a href="#" onclick="showTab('login')">← Назад до входу</a>
-            </div>
-        </div>
-
-        <!-- АДМІН ПАНЕЛЬ -->
-        <div id="adminPanel" class="tab-content" style="display:none">
-            <h2>👑 Адміністративна панель</h2>
-            <div class="admin-panel">
-                <h3>Вітаємо, Адміністратор!</h3>
-                <p>Ви успішно увійшли в систему як адмін.</p>
-                
-                <div style="margin: 20px 0;">
-                    <button class="btn btn-primary" onclick="manageUsers()">👥 Керування користувачами</button>
-                    <button class="btn btn-primary" onclick="manageGrades()">📊 Керування оцінками</button>
-                    <button class="btn btn-primary" onclick="systemSettings()">⚙️ Налаштування системи</button>
-                </div>
-                
-                <button class="btn btn-secondary" onclick="logout()">🚪 Вийти</button>
-            </div>
+            <p style="text-align: center; color: #666; margin-top: 10px;">
+                Документ завантажується з Google Docs...
+            </p>
         </div>
     </div>
 
@@ -241,14 +259,14 @@
         // Ініціалізація EmailJS
         emailjs.init("G0J3Izq0LA9Bgb4X0");
 
-        // ТВІЙ АДМІН-АКАУНТ
-        const adminAccount = {
-            email: "admin@school.com",
-            password: "admin123",
-            name: "Головний Адміністратор"
+        // Демо-користувачі
+        const demoUsers = {
+            "admin@school.com": "admin123",
+            "teacher@school.com": "teacher123", 
+            "student@school.com": "student123"
         };
 
-        function showTab(tabName) {
+        function openTab(tabName) {
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
@@ -257,115 +275,43 @@
             });
             
             document.getElementById(tabName).classList.add('active');
-            
-            // Для кнопки "Забули пароль" не додаємо active клас до вкладок
-            if(tabName !== 'forgot') {
-                event.target.classList.add('active');
-            }
+            event.target.classList.add('active');
         }
 
         function login() {
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
             
-            if(!email || !password) {
-                alert('Будь ласка, заповніть всі поля!');
-                return;
-            }
-
-            // ПЕРЕВІРКА АДМІНА
-            if(email === adminAccount.email && password === adminAccount.password) {
-                document.getElementById('login').classList.remove('active');
-                document.getElementById('adminPanel').classList.add('active');
-                alert('👑 Вітаємо! Ви увійшли як Адміністратор!');
+            if(demoUsers[email] === password) {
+                alert('✅ Вхід успішний!');
             } else {
                 alert('❌ Невірний email або пароль!');
             }
         }
 
         function registerSchool() {
-            const schoolName = document.getElementById('schoolName').value;
-            const email = document.getElementById('adminEmail').value;
-            
-            if(!schoolName || !email) {
-                alert('Будь ласка, заповніть обовʼязкові поля!');
-                return;
-            }
-
-            alert('✅ Школа "' + schoolName + '" успішно зареєстрована!\nЛогін для директора: ' + email);
-            showTab('login');
+            alert('✅ Заявку надіслано! Ми зв\'яжемося з вами для реєстрації.');
         }
 
         function sendRecoveryCode() {
-            const email = document.getElementById('recoveryEmail').value;
-            const btn = document.getElementById('sendCodeBtn');
+            const email = prompt("Введіть ваш email для відновлення пароля:");
             
-            if(!email) {
-                alert('Будь ласка, введіть email!');
-                return;
-            }
-
-            const code = Math.floor(100000 + Math.random() * 900000);
-            
-            btn.innerHTML = '<div class="loader"></div>';
-            btn.disabled = true;
-
-            emailjs.send("service_ydertiz", "template_recovery", {
-                to_email: email,
-                КОД_ДОСТУПА: code,
-                time: "15 хвилин"
-            })
-            .then(function(response) {
-                btn.innerHTML = 'Код відправлено ✓';
-                alert('✅ Код відправлено на ' + email);
-                document.getElementById('codeSection').style.display = 'block';
+            if(email) {
+                const code = Math.floor(100000 + Math.random() * 900000);
                 
-                setTimeout(() => {
-                    btn.innerHTML = 'Надіслати код';
-                    btn.disabled = false;
-                }, 3000);
-            })
-            .catch(function(error) {
-                btn.innerHTML = 'Надіслати код';
-                btn.disabled = false;
-                alert('❌ Помилка: ' + JSON.stringify(error));
-            });
-        }
-
-        function resetPassword() {
-            const code = document.getElementById('recoveryCode').value;
-            const newPass = document.getElementById('newPassword').value;
-            
-            if(code && newPass) {
-                alert('✅ Пароль успішно змінено!');
-                showTab('login');
-            } else {
-                alert('❌ Заповніть всі поля!');
+                // Відправка email
+                emailjs.send("service_ydertiz", "template_xxxxx", {
+                    to_email: email,
+                    КОД_ДОСТУПА: code
+                })
+                .then(function() {
+                    alert('✅ Код відправлено на ' + email + '\nКод: ' + code);
+                })
+                .catch(function() {
+                    alert('📧 Код для відновлення: ' + code);
+                });
             }
         }
-
-        function manageUsers() {
-            alert('👥 Тут буде керування користувачами');
-        }
-
-        function manageGrades() {
-            alert('📊 Тут буде керування оцінками');
-        }
-
-        function systemSettings() {
-            alert('⚙️ Тут будуть налаштування системи');
-        }
-
-        function logout() {
-            document.getElementById('adminPanel').classList.remove('active');
-            document.getElementById('login').classList.add('active');
-            document.getElementById('loginEmail').value = '';
-            document.getElementById('loginPassword').value = '';
-            alert('👋 Ви вийшли з системи');
-        }
-
-        // Автоматично показуємо першу вкладку
-        document.getElementById('login').classList.add('active');
     </script>
 </body>
 </html>
