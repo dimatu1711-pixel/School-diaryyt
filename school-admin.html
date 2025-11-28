@@ -117,6 +117,7 @@
             border-radius: 12px;
             background: white;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
         
         .class-card:hover {
@@ -157,6 +158,29 @@
             font-size: 12px;
             font-weight: 600;
         }
+        
+        .class-details {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        
+        .students-list {
+            margin: 15px 0;
+        }
+        
+        .student-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin: 8px 0;
+            background: white;
+        }
     </style>
 </head>
 <body>
@@ -188,6 +212,7 @@
         <div class="tabs">
             <button class="tab active" onclick="openTab('teachers')">👨‍🏫 Вчителі</button>
             <button class="tab" onclick="openTab('classes')">📚 Класи</button>
+            <button class="tab" onclick="openTab('students')">👨‍🎓 Учні</button>
             <button class="tab" onclick="openTab('schedule')">📅 Розклад</button>
             <button class="tab" onclick="openTab('admins')">⚙️ Адміністратори</button>
             <button class="tab" onclick="openTab('website')">🌐 Сайт школи</button>
@@ -221,6 +246,28 @@
             
             <h3>Список класів</h3>
             <div class="class-grid" id="classesList"></div>
+            
+            <!-- ДЕТАЛІ КЛАСУ -->
+            <div id="classDetails" class="class-details">
+                <h3>👨‍🎓 Учні класу: <span id="className"></span></h3>
+                
+                <div style="display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 10px; margin-bottom: 20px;">
+                    <input type="text" id="studentName" placeholder="ПІБ учня">
+                    <input type="email" id="studentEmail" placeholder="Email учня">
+                    <button class="btn-small" onclick="addStudent()">Додати учня</button>
+                </div>
+                
+                <h4>Список учнів:</h4>
+                <div class="students-list" id="studentsList"></div>
+                
+                <button class="btn-small" onclick="closeClassDetails()" style="background: #6c757d;">← Назад до класів</button>
+            </div>
+        </div>
+
+        <!-- УЧНІ -->
+        <div id="students" class="tab-content">
+            <h3>Всі учні школи</h3>
+            <div class="user-list" id="allStudentsList"></div>
         </div>
 
         <!-- РОЗКЛАД -->
@@ -269,6 +316,8 @@
             students: []
         };
 
+        let currentClassId = null;
+
         // Оновлюємо інтерфейс при завантаженні
         document.addEventListener('DOMContentLoaded', function() {
             updateSchoolTitle();
@@ -276,6 +325,7 @@
             loadTeachers();
             loadClasses();
             loadAdmins();
+            loadAllStudents();
             populateTeacherSelect();
             populateClassSelect();
         });
@@ -375,7 +425,7 @@
                     grade: grade,
                     letter: letter,
                     teacher: teacher.name,
-                    students: 0
+                    students: []
                 };
                 
                 schoolData.classes.push(newClass);
@@ -400,10 +450,125 @@
                 card.className = 'class-card';
                 card.innerHTML = `
                     <strong>${classItem.name}</strong><br>
-                    Учнів: ${classItem.students}<br>
+                    Учнів: ${classItem.students.length}<br>
                     Вчитель: ${classItem.teacher}
                 `;
+                card.onclick = () => openClassDetails(classItem.id);
                 list.appendChild(card);
+            });
+        }
+
+        function openClassDetails(classId) {
+            currentClassId = classId;
+            const classItem = schoolData.classes.find(c => c.id == classId);
+            
+            document.getElementById('className').textContent = classItem.name;
+            document.getElementById('classesList').style.display = 'none';
+            document.getElementById('classDetails').style.display = 'block';
+            
+            loadStudents(classId);
+        }
+
+        function closeClassDetails() {
+            document.getElementById('classesList').style.display = 'grid';
+            document.getElementById('classDetails').style.display = 'none';
+            currentClassId = null;
+        }
+
+        function addStudent() {
+            if (!currentClassId) return;
+            
+            const name = document.getElementById('studentName').value;
+            const email = document.getElementById('studentEmail').value;
+            
+            if (name && email) {
+                const password = generatePassword();
+                const student = {
+                    id: Date.now(),
+                    name: name,
+                    email: email,
+                    password: password,
+                    classId: currentClassId
+                };
+                
+                // Додаємо учня до загального списку
+                schoolData.students.push(student);
+                
+                // Додаємо учня до класу
+                const classItem = schoolData.classes.find(c => c.id == currentClassId);
+                classItem.students.push(student);
+                
+                saveSchoolData();
+                loadStudents(currentClassId);
+                loadAllStudents();
+                updateStats();
+                
+                alert(`✅ Учня додано!\n\n👨‍🎓 Ім'я: ${name}\n📧 Логін: ${email}\n🔐 Пароль: ${password}`);
+                
+                document.getElementById('studentName').value = '';
+                document.getElementById('studentEmail').value = '';
+            } else {
+                alert('❌ Заповніть всі поля!');
+            }
+        }
+
+        function loadStudents(classId) {
+            const list = document.getElementById('studentsList');
+            list.innerHTML = '';
+            
+            const classItem = schoolData.classes.find(c => c.id == classId);
+            
+            classItem.students.forEach(student => {
+                const item = document.createElement('div');
+                item.className = 'student-item';
+                item.innerHTML = `
+                    <div>
+                        <strong>${student.name}</strong><br>
+                        <small>${student.email}</small>
+                    </div>
+                    <div>
+                        <span class="password-badge">🔐 ${student.password}</span>
+                        <button class="btn-small" style="background: #ff6b6b;" onclick="deleteStudent(${student.id}, ${classId})">Видалити</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function deleteStudent(studentId, classId) {
+            if (confirm('Видалити цього учня?')) {
+                // Видаляємо з загального списку
+                schoolData.students = schoolData.students.filter(student => student.id !== studentId);
+                
+                // Видаляємо з класу
+                const classItem = schoolData.classes.find(c => c.id == classId);
+                classItem.students = classItem.students.filter(student => student.id !== studentId);
+                
+                saveSchoolData();
+                loadStudents(classId);
+                loadAllStudents();
+                updateStats();
+            }
+        }
+
+        function loadAllStudents() {
+            const list = document.getElementById('allStudentsList');
+            list.innerHTML = '';
+            
+            schoolData.students.forEach(student => {
+                const classItem = schoolData.classes.find(c => c.id == student.classId);
+                const item = document.createElement('div');
+                item.className = 'user-item';
+                item.innerHTML = `
+                    <div>
+                        <strong>${student.name}</strong><br>
+                        <small>${student.email} | Клас: ${classItem ? classItem.name : 'Не вказано'}</small>
+                    </div>
+                    <div>
+                        <span class="password-badge">🔐 ${student.password}</span>
+                    </div>
+                `;
+                list.appendChild(item);
             });
         }
 
