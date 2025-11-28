@@ -122,10 +122,6 @@
             background: #f8f9fa;
         }
         
-        .meeting-table tr:hover {
-            background: #e7f3ff;
-        }
-        
         .info-link {
             color: #667eea;
             cursor: pointer;
@@ -140,24 +136,6 @@
             border-radius: 10px;
             margin: 20px 0;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        
-        .meeting-status {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .status-completed {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status-planned {
-            background: #fff3cd;
-            color: #856404;
         }
     </style>
 </head>
@@ -192,7 +170,7 @@
                         <td><strong>Засідання №1</strong></td>
                         <td>З питань захисту даних</td>
                         <td>
-                            <span class="meeting-status status-completed">Проведено</span>
+                            <span style="background: #d4edda; color: #155724; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">Проведено</span>
                         </td>
                     </tr>
                     <tr>
@@ -202,13 +180,6 @@
                             <span class="info-link" onclick="openTab('info')">
                                 Детальніше →
                             </span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><strong>Статус</strong></td>
-                        <td>Рішення прийнято</td>
-                        <td>
-                            <span class="meeting-status status-completed">Завершено</span>
                         </td>
                     </tr>
                 </tbody>
@@ -244,22 +215,15 @@
         <div id="info" class="tab-content">
             <h2>Документація засідання</h2>
             
-            <!-- Google Doc переглядач -->
             <iframe src="https://docs.google.com/document/d/1qSKSLGrN2Cx7igervQC2QEgx0Hy01IF7RryqsNs4WIc/preview" 
                     class="doc-viewer">
             </iframe>
-            
-            <p style="text-align: center; color: #666; margin-top: 10px;">
-                Документ завантажується з Google Docs...
-            </p>
         </div>
     </div>
 
     <script>
-        // Ініціалізація EmailJS
         emailjs.init("G0J3Izq0LA9Bgb4X0");
 
-        // Демо-користувачі
         const demoUsers = {
             "admin@school.com": "admin123",
             "teacher@school.com": "teacher123", 
@@ -283,10 +247,22 @@
             const password = document.getElementById('loginPassword').value;
             
             if(demoUsers[email] === password) {
-                alert('✅ Вхід успішний!');
+                // Зберігаємо дані про вхід
+                localStorage.setItem('currentUser', email);
+                localStorage.setItem('userRole', getRoleByEmail(email));
+                
+                // Переходимо на dashboard
+                window.location.href = 'dashboard.html';
             } else {
                 alert('❌ Невірний email або пароль!');
             }
+        }
+
+        function getRoleByEmail(email) {
+            if(email === 'admin@school.com') return 'admin';
+            if(email === 'teacher@school.com') return 'teacher';
+            if(email === 'student@school.com') return 'student';
+            return 'user';
         }
 
         function registerSchool() {
@@ -295,11 +271,8 @@
 
         function sendRecoveryCode() {
             const email = prompt("Введіть ваш email для відновлення пароля:");
-            
             if(email) {
                 const code = Math.floor(100000 + Math.random() * 900000);
-                
-                // Відправка email
                 emailjs.send("service_ydertiz", "template_xxxxx", {
                     to_email: email,
                     КОД_ДОСТУПА: code
