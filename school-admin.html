@@ -509,7 +509,7 @@
                     </div>
                     
                     <div class="export-actions">
-                        <button class="btn-small" onclick="exportClassSchedule()" style="background: #48bb78;">💾 Зберегти розклад у файл</button>
+                        <button class="btn-small" onclick="exportClassSchedule()" style="background: #48bb78;">💾 Зберегти</button>
                     </div>
                     
                     <div id="classScheduleDisplay">
@@ -540,7 +540,7 @@
                     🗑️ Очистити всі розклади
                 </button>
                 <button class="btn-small" onclick="exportAllSchedules()" style="background: #48bb78;">
-                    💾 Зберегти всі розклади
+                    💾 Зберегти
                 </button>
             </div>
 
@@ -581,7 +581,7 @@
                 <h4>👀 Попередній перегляд розкладу:</h4>
                 <div id="previewTable"></div>
                 <div class="preview-actions">
-                    <button class="btn-small" onclick="saveScheduleFromPreview()" style="background: #48bb78;">💾 Зберегти розклад</button>
+                    <button class="btn-small" onclick="saveScheduleFromPreview()" style="background: #48bb78;">💾 Зберегти</button>
                     <button class="btn-small" onclick="replaceScheduleFromPreview()" style="background: #ffa500;">🔄 Замінити поточний</button>
                     <button class="btn-small" onclick="deletePreview()" style="background: #ff6b6b;">❌ Видалити перегляд</button>
                 </div>
@@ -595,7 +595,7 @@
             </div>
 
             <div class="export-actions">
-                <button class="btn-small" onclick="exportCurrentSchedule()" style="background: #48bb78;">💾 Зберегти цей розклад у файл</button>
+                <button class="btn-small" onclick="exportCurrentSchedule()" style="background: #48bb78;">💾 Зберегти</button>
             </div>
 
             <div id="scheduleDisplay">
@@ -1372,7 +1372,7 @@
         function exportCurrentSchedule() {
             const classId = document.getElementById('scheduleClass').value;
             if (!classId) {
-                alert('❌ Спочатку оберіть клас для експорту!');
+                alert('❌ Спочатку оберіть клас для збереження!');
                 return;
             }
             exportClassScheduleToFile(classId);
