@@ -358,6 +358,51 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Стилі для вкладок класу */
+        .class-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e1e1e1;
+        }
+        
+        .class-tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .class-tab.active {
+            border-bottom: 3px solid #667eea;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .class-tab-content {
+            display: none;
+        }
+        
+        .class-tab-content.active {
+            display: block;
+        }
+
+        .class-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .class-title {
+            font-size: 24px;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -426,18 +471,40 @@
             
             <!-- ДЕТАЛІ КЛАСУ -->
             <div id="classDetails" class="class-details">
-                <h3>👨‍🎓 Учні класу: <span id="className"></span></h3>
-                
-                <div style="display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 10px; margin-bottom: 20px;">
-                    <input type="text" id="studentName" placeholder="ПІБ учня">
-                    <input type="email" id="studentEmail" placeholder="Email учня">
-                    <button class="btn-small" onclick="addStudent()">Додати учня</button>
+                <div class="class-header">
+                    <div class="class-title">👨‍🎓 Клас: <span id="className"></span></div>
+                    <button class="btn-small" onclick="closeClassDetails()" style="background: #6c757d;">← Назад до класів</button>
                 </div>
                 
-                <h4>Список учнів:</h4>
-                <div class="students-list" id="studentsList"></div>
-                
-                <button class="btn-small" onclick="closeClassDetails()" style="background: #6c757d;">← Назад до класів</button>
+                <!-- Вкладки класу -->
+                <div class="class-tabs">
+                    <button class="class-tab active" onclick="openClassTab('classStudents')">👨‍🎓 Учні класу</button>
+                    <button class="class-tab" onclick="openClassTab('classSchedule')">📅 Розклад класу</button>
+                </div>
+
+                <!-- Вкладка учнів -->
+                <div id="classStudents" class="class-tab-content active">
+                    <div style="display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 10px; margin-bottom: 20px;">
+                        <input type="text" id="studentName" placeholder="ПІБ учня">
+                        <input type="email" id="studentEmail" placeholder="Email учня">
+                        <button class="btn-small" onclick="addStudent()">Додати учня</button>
+                    </div>
+                    
+                    <h4>Список учнів:</h4>
+                    <div class="students-list" id="studentsList"></div>
+                </div>
+
+                <!-- Вкладка розкладу -->
+                <div id="classSchedule" class="class-tab-content">
+                    <div style="margin-bottom: 20px;">
+                        <h4>📅 Розклад занять</h4>
+                        <p>Тут відображається розклад для цього класу</p>
+                    </div>
+                    
+                    <div id="classScheduleDisplay">
+                        <p>Завантажте розклад для цього класу у вкладці "Розклад"</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -716,7 +783,28 @@
             document.getElementById('classesList').style.display = 'none';
             document.getElementById('classDetails').style.display = 'block';
             
+            // Завантажуємо вкладку учнів за замовчуванням
             loadStudents(classId);
+            loadClassSchedule(classId);
+        }
+
+        function openClassTab(tabName) {
+            // Ховаємо всі вкладки
+            document.querySelectorAll('.class-tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.class-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Показуємо обрану вкладку
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Якщо відкриваємо вкладку розкладу, оновлюємо його
+            if (tabName === 'classSchedule') {
+                loadClassSchedule(currentClassId);
+            }
         }
 
         function closeClassDetails() {
@@ -768,6 +856,11 @@
             
             const classItem = schoolData.classes.find(c => c.id == classId);
             
+            if (classItem.students.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">👨‍🎓 У цьому класі ще немає учнів</p>';
+                return;
+            }
+            
             classItem.students.forEach(student => {
                 const item = document.createElement('div');
                 item.className = 'student-item';
@@ -783,6 +876,59 @@
                 `;
                 list.appendChild(item);
             });
+        }
+
+        function loadClassSchedule(classId) {
+            const display = document.getElementById('classScheduleDisplay');
+            const schedule = schoolData.schedules[classId];
+            const classItem = schoolData.classes.find(c => c.id == classId);
+            
+            if (!schedule) {
+                display.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">📅</div>
+                        <h4>Розклад ще не створено</h4>
+                        <p>Завантажте розклад для цього класу у вкладці "Розклад"</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `<h4 style="color: #667eea;">Розклад для ${classItem.name}</h4>`;
+            html += `<table class="schedule-table">`;
+            html += `<tr><th>Урок</th><th>Понеділок</th><th>Вівторок</th><th>Середа</th><th>Четвер</th><th>П'ятниця</th></tr>`;
+            
+            for (let lesson = 1; lesson <= 7; lesson++) {
+                html += `<tr><td><strong>${lesson}</strong></td>`;
+                
+                const days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
+                days.forEach(day => {
+                    const lessonData = schedule[day] ? schedule[day].find(l => l.lesson === lesson) : null;
+                    const subject = lessonData ? lessonData.subject : '';
+                    const teacher = lessonData ? lessonData.teacher : '';
+                    const classroom = lessonData ? lessonData.classroom : '';
+                    
+                    let displayText = '';
+                    if (subject) {
+                        displayText = `<strong>${subject}</strong>`;
+                        if (teacher) {
+                            displayText += `<br><small>${teacher}</small>`;
+                        }
+                        if (classroom) {
+                            displayText += `<br><small>${classroom}</small>`;
+                        }
+                    } else {
+                        displayText = '<span class="empty-lesson">---</span>';
+                    }
+                    
+                    html += `<td>${displayText}</td>`;
+                });
+                
+                html += `</tr>`;
+            }
+            
+            html += `</table>`;
+            display.innerHTML = html;
         }
 
         function deleteStudent(studentId, classId) {
@@ -1022,6 +1168,11 @@
             alert('✅ Розклад успішно збережено!');
             deletePreview();
             loadSchedule();
+            
+            // Оновлюємо розклад у вкладці класу, якщо він відкритий
+            if (currentClassId === currentPreviewClassId) {
+                loadClassSchedule(currentClassId);
+            }
         }
 
         function replaceScheduleFromPreview() {
@@ -1035,6 +1186,11 @@
                 alert('✅ Розклад успішно замінено!');
                 deletePreview();
                 loadSchedule();
+                
+                // Оновлюємо розклад у вкладці класу, якщо він відкритий
+                if (currentClassId === currentPreviewClassId) {
+                    loadClassSchedule(currentClassId);
+                }
             }
         }
 
