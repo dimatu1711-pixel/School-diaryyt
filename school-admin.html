@@ -181,6 +181,86 @@
             margin: 8px 0;
             background: white;
         }
+
+        /* Стилі для розкладу */
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .schedule-table th, .schedule-table td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .schedule-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .schedule-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .lesson-cell {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .lesson-cell:hover {
+            background: #bbdefb !important;
+        }
+        
+        .schedule-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .empty-lesson {
+            color: #999;
+            font-style: italic;
+        }
+        
+        .schedule-editor {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .editor-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+        }
+        
+        .editor-table th, .editor-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .editor-table th {
+            background: #667eea;
+            color: white;
+        }
+        
+        .editor-table input {
+            width: 100%;
+            border: 1px solid #ddd;
+            padding: 8px;
+            margin: 0;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -278,6 +358,20 @@
                     <option value="">Оберіть клас</option>
                 </select>
             </div>
+            
+            <div class="schedule-controls">
+                <button class="btn-small" onclick="showEditor()" id="editScheduleBtn">✏️ Створити/Редагувати розклад</button>
+                <button class="btn-small" onclick="saveSchedule()" id="saveScheduleBtn" style="display: none; background: #48bb78;">💾 Зберегти розклад</button>
+                <button class="btn-small" onclick="cancelEdit()" id="cancelEditBtn" style="display: none; background: #6c757d;">❌ Скасувати</button>
+            </div>
+            
+            <!-- Редактор розкладу -->
+            <div id="scheduleEditor" class="schedule-editor" style="display: none;">
+                <h4>📝 Редактор розкладу для класу: <span id="editorClassName"></span></h4>
+                <div id="editorTableContainer"></div>
+            </div>
+            
+            <!-- Відображення розкладу -->
             <div id="scheduleDisplay">
                 <p>Оберіть клас для перегляду розкладу</p>
             </div>
@@ -313,10 +407,12 @@
             teachers: [],
             classes: [],
             admins: [],
-            students: []
+            students: [],
+            schedules: {} // Додаємо зберігання розкладів
         };
 
         let currentClassId = null;
+        let isEditingSchedule = false;
 
         // Оновлюємо інтерфейс при завантаженні
         document.addEventListener('DOMContentLoaded', function() {
@@ -665,17 +761,182 @@
             });
         }
 
+        function showEditor() {
+            const classId = document.getElementById('scheduleClass').value;
+            if (!classId) {
+                alert('Оберіть клас для створення розкладу');
+                return;
+            }
+            
+            const classItem = schoolData.classes.find(c => c.id == classId);
+            document.getElementById('editorClassName').textContent = classItem.name;
+            
+            // Показуємо редактор
+            document.getElementById('scheduleEditor').style.display = 'block';
+            document.getElementById('scheduleDisplay').style.display = 'none';
+            
+            // Створюємо таблицю редактора
+            createEditorTable(classId);
+            
+            // Оновлюємо кнопки
+            document.getElementById('editScheduleBtn').style.display = 'none';
+            document.getElementById('saveScheduleBtn').style.display = 'inline-block';
+            document.getElementById('cancelEditBtn').style.display = 'inline-block';
+            
+            isEditingSchedule = true;
+        }
+
+        function createEditorTable(classId) {
+            // Отримуємо або створюємо розклад для класу
+            if (!schoolData.schedules[classId]) {
+                schoolData.schedules[classId] = createEmptySchedule();
+            }
+            
+            const schedule = schoolData.schedules[classId];
+            const container = document.getElementById('editorTableContainer');
+            
+            let html = `<table class="editor-table">`;
+            html += `<tr><th>Урок</th><th>Понеділок</th><th>Вівторок</th><th>Середа</th><th>Четвер</th><th>П'ятниця</th></tr>`;
+            
+            for (let lesson = 1; lesson <= 7; lesson++) {
+                html += `<tr><td><strong>${lesson}</strong></td>`;
+                
+                const days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
+                days.forEach(day => {
+                    const lessonData = schedule[day].find(l => l.lesson === lesson);
+                    html += `
+                        <td>
+                            <input type="text" placeholder="Предмет" value="${lessonData.subject || ''}" 
+                                   data-day="${day}" data-lesson="${lesson}" data-field="subject">
+                            <input type="text" placeholder="Вчитель" value="${lessonData.teacher || ''}" 
+                                   data-day="${day}" data-lesson="${lesson}" data-field="teacher">
+                            <input type="text" placeholder="Кабінет" value="${lessonData.classroom || ''}" 
+                                   data-day="${day}" data-lesson="${lesson}" data-field="classroom">
+                        </td>
+                    `;
+                });
+                
+                html += `</tr>`;
+            }
+            
+            html += `</table>`;
+            container.innerHTML = html;
+        }
+
+        function createEmptySchedule() {
+            const days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
+            const schedule = {};
+            
+            days.forEach(day => {
+                schedule[day] = [];
+                for (let i = 1; i <= 7; i++) {
+                    schedule[day].push({
+                        lesson: i,
+                        subject: '',
+                        teacher: '',
+                        classroom: ''
+                    });
+                }
+            });
+            
+            return schedule;
+        }
+
+        function saveSchedule() {
+            const classId = document.getElementById('scheduleClass').value;
+            if (!classId) return;
+            
+            // Збираємо дані з форми
+            const inputs = document.querySelectorAll('#editorTableContainer input');
+            const schedule = schoolData.schedules[classId];
+            
+            inputs.forEach(input => {
+                const day = input.getAttribute('data-day');
+                const lesson = parseInt(input.getAttribute('data-lesson'));
+                const field = input.getAttribute('data-field');
+                const value = input.value;
+                
+                const lessonIndex = schedule[day].findIndex(l => l.lesson === lesson);
+                if (lessonIndex !== -1) {
+                    schedule[day][lessonIndex][field] = value;
+                }
+            });
+            
+            saveSchoolData();
+            
+            // Повертаємося до перегляду
+            document.getElementById('scheduleEditor').style.display = 'none';
+            document.getElementById('scheduleDisplay').style.display = 'block';
+            document.getElementById('editScheduleBtn').style.display = 'inline-block';
+            document.getElementById('saveScheduleBtn').style.display = 'none';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            
+            loadSchedule(); // Оновлюємо відображення
+            alert('✅ Розклад успішно збережено!');
+        }
+
+        function cancelEdit() {
+            document.getElementById('scheduleEditor').style.display = 'none';
+            document.getElementById('scheduleDisplay').style.display = 'block';
+            document.getElementById('editScheduleBtn').style.display = 'inline-block';
+            document.getElementById('saveScheduleBtn').style.display = 'none';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            
+            loadSchedule(); // Перезавантажуємо оригінальний розклад
+        }
+
         function loadSchedule() {
             const classId = document.getElementById('scheduleClass').value;
             const display = document.getElementById('scheduleDisplay');
             
-            if (classId) {
-                const classItem = schoolData.classes.find(c => c.id == classId);
+            if (!classId) {
+                display.innerHTML = '<p>Оберіть клас для перегляду розкладу</p>';
+                return;
+            }
+            
+            const classItem = schoolData.classes.find(c => c.id == classId);
+            const schedule = schoolData.schedules[classId];
+            
+            if (!schedule) {
                 display.innerHTML = `
                     <h4>Розклад для ${classItem.name}</h4>
-                    <p>Тут буде розклад занять...</p>
+                    <p>Розклад ще не створено. Натисніть "Створити/Редагувати розклад" щоб створити розклад.</p>
                 `;
+                return;
             }
+            
+            let html = `<h4>📅 Розклад для ${classItem.name}</h4>`;
+            html += `<table class="schedule-table">`;
+            html += `<tr><th>Урок</th><th>Понеділок</th><th>Вівторок</th><th>Середа</th><th>Четвер</th><th>П'ятниця</th></tr>`;
+            
+            for (let lesson = 1; lesson <= 7; lesson++) {
+                html += `<tr><td><strong>${lesson}</strong></td>`;
+                
+                const days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
+                days.forEach(day => {
+                    const lessonData = schedule[day].find(l => l.lesson === lesson);
+                    const subject = lessonData ? lessonData.subject : '';
+                    const teacher = lessonData ? lessonData.teacher : '';
+                    const classroom = lessonData ? lessonData.classroom : '';
+                    
+                    let displayText = '';
+                    if (subject) {
+                        displayText = `<strong>${subject}</strong><br><small>${teacher}</small>`;
+                        if (classroom) {
+                            displayText += `<br><small>каб. ${classroom}</small>`;
+                        }
+                    } else {
+                        displayText = '<span class="empty-lesson">---</span>';
+                    }
+                    
+                    html += `<td class="lesson-cell">${displayText}</td>`;
+                });
+                
+                html += `</tr>`;
+            }
+            
+            html += `</table>`;
+            display.innerHTML = html;
         }
 
         function saveSchoolData() {
@@ -692,6 +953,15 @@
             
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
+            
+            // При переключенні на вкладку розкладу ховаємо редактор
+            if (tabName === 'schedule') {
+                document.getElementById('scheduleEditor').style.display = 'none';
+                document.getElementById('scheduleDisplay').style.display = 'block';
+                document.getElementById('editScheduleBtn').style.display = 'inline-block';
+                document.getElementById('saveScheduleBtn').style.display = 'none';
+                document.getElementById('cancelEditBtn').style.display = 'none';
+            }
         }
 
         function logout() {
