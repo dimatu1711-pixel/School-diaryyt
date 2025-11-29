@@ -296,6 +296,23 @@
             border-radius: 8px;
             border-left: 4px solid #48bb78;
         }
+
+        .search-box {
+            margin: 20px 0;
+            position: relative;
+        }
+        
+        .search-box input {
+            padding-left: 40px;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+        }
     </style>
 </head>
 <body>
@@ -382,7 +399,15 @@
         <!-- УЧНІ -->
         <div id="students" class="tab-content">
             <h3>Всі учні школи</h3>
-            <div class="user-list" id="allStudentsList"></div>
+            
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="studentSearch" placeholder="Пошук учнів за ім'ям, email або класом..." onkeyup="searchStudents()">
+            </div>
+            
+            <div class="user-list" id="allStudentsList">
+                <p>Завантаження списку учнів...</p>
+            </div>
         </div>
 
         <!-- РОЗКЛАД -->
@@ -482,7 +507,7 @@
             loadTeachers();
             loadClasses();
             loadAdmins();
-            loadAllStudents();
+            loadAllStudents(); // Додаємо завантаження учнів при старті
             populateTeacherSelect();
             populateClassSelect();
         });
@@ -683,7 +708,7 @@
                 
                 saveSchoolData();
                 loadStudents(currentClassId);
-                loadAllStudents();
+                loadAllStudents(); // Оновлюємо загальний список учнів
                 updateStats();
                 
                 alert(`✅ Учня додано!\n\n👨‍🎓 Ім'я: ${name}\n📧 Логін: ${email}\n🔐 Пароль: ${password}`);
@@ -701,21 +726,23 @@
             
             const classItem = schoolData.classes.find(c => c.id == classId);
             
-            classItem.students.forEach(student => {
-                const item = document.createElement('div');
-                item.className = 'student-item';
-                item.innerHTML = `
-                    <div>
-                        <strong>${student.name}</strong><br>
-                        <small>${student.email}</small>
-                    </div>
-                    <div>
-                        <span class="password-badge">🔐 ${student.password}</span>
-                        <button class="btn-small" style="background: #ff6b6b;" onclick="deleteStudent(${student.id}, ${classId})">Видалити</button>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
+            if (classItem && classItem.students) {
+                classItem.students.forEach(student => {
+                    const item = document.createElement('div');
+                    item.className = 'student-item';
+                    item.innerHTML = `
+                        <div>
+                            <strong>${student.name}</strong><br>
+                            <small>${student.email}</small>
+                        </div>
+                        <div>
+                            <span class="password-badge">🔐 ${student.password}</span>
+                            <button class="btn-small" style="background: #ff6b6b;" onclick="deleteStudent(${student.id}, ${classId})">Видалити</button>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            }
         }
 
         function deleteStudent(studentId, classId) {
@@ -725,11 +752,13 @@
                 
                 // Видаляємо з класу
                 const classItem = schoolData.classes.find(c => c.id == classId);
-                classItem.students = classItem.students.filter(student => student.id !== studentId);
+                if (classItem) {
+                    classItem.students = classItem.students.filter(student => student.id !== studentId);
+                }
                 
                 saveSchoolData();
                 loadStudents(classId);
-                loadAllStudents();
+                loadAllStudents(); // Оновлюємо загальний список учнів
                 updateStats();
             }
         }
@@ -738,17 +767,87 @@
             const list = document.getElementById('allStudentsList');
             list.innerHTML = '';
             
+            if (!schoolData.students || schoolData.students.length === 0) {
+                list.innerHTML = '<p>👨‍🎓 Учнів ще не додано. Додайте учнів у вкладці "Класи".</p>';
+                return;
+            }
+            
             schoolData.students.forEach(student => {
                 const classItem = schoolData.classes.find(c => c.id == student.classId);
+                const className = classItem ? classItem.name : 'Не вказано';
+                
                 const item = document.createElement('div');
                 item.className = 'user-item';
                 item.innerHTML = `
                     <div>
                         <strong>${student.name}</strong><br>
-                        <small>${student.email} | Клас: ${classItem ? classItem.name : 'Не вказано'}</small>
+                        <small>${student.email} | Клас: ${className}</small>
                     </div>
                     <div>
                         <span class="password-badge">🔐 ${student.password}</span>
+                        <button class="btn-small" style="background: #ff6b6b;" onclick="deleteStudentFromAll(${student.id})">Видалити</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function deleteStudentFromAll(studentId) {
+            if (confirm('Видалити цього учня з усіх списків?')) {
+                // Видаляємо з загального списку
+                schoolData.students = schoolData.students.filter(student => student.id !== studentId);
+                
+                // Видаляємо з усіх класів
+                schoolData.classes.forEach(classItem => {
+                    classItem.students = classItem.students.filter(student => student.id !== studentId);
+                });
+                
+                saveSchoolData();
+                loadAllStudents();
+                updateStats();
+                alert('✅ Учня успішно видалено!');
+            }
+        }
+
+        function searchStudents() {
+            const searchTerm = document.getElementById('studentSearch').value.toLowerCase();
+            const list = document.getElementById('allStudentsList');
+            
+            if (!searchTerm) {
+                loadAllStudents();
+                return;
+            }
+            
+            const filteredStudents = schoolData.students.filter(student => {
+                const classItem = schoolData.classes.find(c => c.id == student.classId);
+                const className = classItem ? classItem.name.toLowerCase() : '';
+                
+                return student.name.toLowerCase().includes(searchTerm) ||
+                       student.email.toLowerCase().includes(searchTerm) ||
+                       className.includes(searchTerm);
+            });
+            
+            list.innerHTML = '';
+            
+            if (filteredStudents.length === 0) {
+                list.innerHTML = '<p>🔍 Учнів за вашим запитом не знайдено.</p>';
+                return;
+            }
+            
+            filteredStudents.forEach(student => {
+                const classItem = schoolData.classes.find(c => c.id == student.classId);
+                const className = classItem ? classItem.name : 'Не вказано';
+                
+                const item = document.createElement('div');
+                item.className = 'user-item';
+                item.innerHTML = `
+                    <div>
+                        <strong>${student.name}</strong><br>
+                        <small>${student.email} | Клас: ${className}</small>
+                    </div>
+                    <div>
+                        <span class="password-badge">🔐 ${student.password}</span>
+                        <button class="btn-small" style="background: #ff6b6b;" onclick="deleteStudentFromAll(${student.id})">Видалити</button>
                     </div>
                 `;
                 list.appendChild(item);
@@ -1157,6 +1256,11 @@
                 document.getElementById('editScheduleBtn').style.display = 'inline-block';
                 document.getElementById('saveScheduleBtn').style.display = 'none';
                 document.getElementById('cancelEditBtn').style.display = 'none';
+            }
+            
+            // При переключенні на вкладку учнів оновлюємо список
+            if (tabName === 'students') {
+                loadAllStudents();
             }
         }
 
