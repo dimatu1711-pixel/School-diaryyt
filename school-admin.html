@@ -530,7 +530,7 @@
         </div>
 
         <!-- РОЗКЛАД -->
-        <div id="schedule" class="tab-content active">
+        <div id="schedule" class="tab-content">
             <h3>📅 Розклад занять</h3>
             
             <div class="schedule-actions">
@@ -544,7 +544,7 @@
                     🗑️ Очистити всі розклади
                 </button>
                 <button class="btn-small save-main-btn" id="saveMainBtn" onclick="saveUploadedSchedule()" style="background: #48bb78;">
-                    💾 Зберегти
+                    💾 Зберегти розклад
                 </button>
             </div>
 
@@ -580,26 +580,11 @@
                 </ul>
             </div>
 
-            <!-- Попередній перегляд файлу -->
-            <div id="filePreview" class="file-preview">
-                <h4>👀 Попередній перегляд розкладу:</h4>
-                <div id="previewTable"></div>
-                <div class="preview-actions">
-                    <button class="btn-small" onclick="saveScheduleFromPreview()" style="background: #48bb78;">💾 Зберегти</button>
-                    <button class="btn-small" onclick="replaceScheduleFromPreview()" style="background: #ffa500;">🔄 Замінити поточний</button>
-                    <button class="btn-small" onclick="deletePreview()" style="background: #ff6b6b;">❌ Видалити перегляд</button>
-                </div>
-            </div>
-
             <!-- Відображення збереженого розкладу -->
             <div style="margin-bottom: 20px;">
                 <select id="scheduleClass" onchange="loadSchedule()">
                     <option value="">Оберіть клас для перегляду</option>
                 </select>
-            </div>
-
-            <div class="export-actions">
-                <button class="btn-small" onclick="exportCurrentSchedule()" style="background: #48bb78;">💾 Зберегти</button>
             </div>
 
             <div id="scheduleDisplay">
@@ -1126,8 +1111,7 @@
                     // Показуємо головну кнопку збереження
                     document.getElementById('saveMainBtn').style.display = 'inline-block';
                     
-                    // Показуємо попередній перегляд
-                    showFilePreview(jsonData, classId);
+                    alert('✅ Файл успішно завантажено! Натисніть "Зберегти розклад" щоб зберегти його у систему.');
                     
                 } catch (error) {
                     console.error('Помилка обробки файлу:', error);
@@ -1146,43 +1130,6 @@
             reader.readAsArrayBuffer(file);
         }
 
-        function showFilePreview(data, classId) {
-            const classItem = schoolData.classes.find(c => c.id == classId);
-            const previewDiv = document.getElementById('filePreview');
-            const previewTable = document.getElementById('previewTable');
-            
-            let html = `<h5>Клас: ${classItem.name}</h5>`;
-            html += `<table class="schedule-table">`;
-            
-            // Заголовки
-            if (data.length > 0) {
-                html += `<tr>`;
-                data[0].forEach(header => {
-                    html += `<th>${header}</th>`;
-                });
-                html += `</tr>`;
-            }
-            
-            // Дані
-            for (let i = 1; i < data.length && i <= 7; i++) {
-                const row = data[i];
-                if (!row) continue;
-                
-                html += `<tr>`;
-                row.forEach(cell => {
-                    html += `<td>${cell || ''}</td>`;
-                });
-                html += `</tr>`;
-            }
-            
-            html += `</table>`;
-            previewTable.innerHTML = html;
-            previewDiv.style.display = 'block';
-            
-            // Прокручуємо до перегляду
-            previewDiv.scrollIntoView({ behavior: 'smooth' });
-        }
-
         // НОВА ФУНКЦІЯ: Збереження з головної кнопки
         function saveUploadedSchedule() {
             if (!currentPreviewData || !currentPreviewClassId) {
@@ -1191,70 +1138,25 @@
             }
             
             importScheduleFromExcel(currentPreviewClassId, currentPreviewData);
-            alert('✅ Розклад успішно збережено!');
+            alert('✅ Розклад успішно збережено для класу!');
             
             // Ховаємо головну кнопку збереження
             document.getElementById('saveMainBtn').style.display = 'none';
             
-            deletePreview();
+            // Оновлюємо вибір класу для перегляду
+            document.getElementById('scheduleClass').value = currentPreviewClassId;
+            
+            // Завантажуємо збережений розклад
             loadSchedule();
             
             // Оновлюємо розклад у вкладці класу, якщо він відкритий
             if (currentClassId === currentPreviewClassId) {
                 loadClassSchedule(currentClassId);
             }
-        }
-
-        function saveScheduleFromPreview() {
-            if (!currentPreviewData || !currentPreviewClassId) {
-                alert('❌ Немає даних для збереження');
-                return;
-            }
             
-            importScheduleFromExcel(currentPreviewClassId, currentPreviewData);
-            alert('✅ Розклад успішно збережено!');
-            
-            // Ховаємо головну кнопку збереження
-            document.getElementById('saveMainBtn').style.display = 'none';
-            
-            deletePreview();
-            loadSchedule();
-            
-            // Оновлюємо розклад у вкладці класу, якщо він відкритий
-            if (currentClassId === currentPreviewClassId) {
-                loadClassSchedule(currentClassId);
-            }
-        }
-
-        function replaceScheduleFromPreview() {
-            if (!currentPreviewData || !currentPreviewClassId) {
-                alert('❌ Немає даних для заміни');
-                return;
-            }
-            
-            if (confirm('⚠️ Замінити поточний розклад? Старі дані будуть втрачені.')) {
-                importScheduleFromExcel(currentPreviewClassId, currentPreviewData);
-                alert('✅ Розклад успішно замінено!');
-                
-                // Ховаємо головну кнопку збереження
-                document.getElementById('saveMainBtn').style.display = 'none';
-                
-                deletePreview();
-                loadSchedule();
-                
-                // Оновлюємо розклад у вкладці класу, якщо він відкритий
-                if (currentClassId === currentPreviewClassId) {
-                    loadClassSchedule(currentClassId);
-                }
-            }
-        }
-
-        function deletePreview() {
+            // Очищаємо дані перегляду
             currentPreviewData = null;
             currentPreviewClassId = null;
-            document.getElementById('filePreview').style.display = 'none';
-            // Ховаємо головну кнопку збереження
-            document.getElementById('saveMainBtn').style.display = 'none';
         }
 
         function importScheduleFromExcel(classId, data) {
@@ -1405,108 +1307,6 @@
             
             html += `</table>`;
             display.innerHTML = html;
-        }
-
-        // ФУНКЦІЇ ДЛЯ ЗБЕРЕЖЕННЯ РОЗКЛАДУ
-        function exportCurrentSchedule() {
-            const classId = document.getElementById('scheduleClass').value;
-            if (!classId) {
-                alert('❌ Спочатку оберіть клас для збереження!');
-                return;
-            }
-            exportClassScheduleToFile(classId);
-        }
-
-        function exportClassSchedule() {
-            if (!currentClassId) {
-                alert('❌ Клас не вибрано!');
-                return;
-            }
-            exportClassScheduleToFile(currentClassId);
-        }
-
-        function exportAllSchedules() {
-            if (Object.keys(schoolData.schedules).length === 0) {
-                alert('❌ Немає збережених розкладів для експорту!');
-                return;
-            }
-
-            // Створюємо workbook для всіх розкладів
-            const wb = XLSX.utils.book_new();
-            
-            Object.keys(schoolData.schedules).forEach(classId => {
-                const classItem = schoolData.classes.find(c => c.id == classId);
-                if (!classItem) return;
-                
-                const schedule = schoolData.schedules[classId];
-                const data = convertScheduleToExcelData(schedule, classItem.name);
-                const ws = XLSX.utils.aoa_to_sheet(data);
-                XLSX.utils.book_append_sheet(wb, ws, classItem.name);
-            });
-
-            // Зберігаємо файл
-            XLSX.writeFile(wb, `Всі_розклади_${schoolData.name}.xlsx`);
-            alert('✅ Всі розклади збережено у файл!');
-        }
-
-        function exportClassScheduleToFile(classId) {
-            const classItem = schoolData.classes.find(c => c.id == classId);
-            const schedule = schoolData.schedules[classId];
-            
-            if (!schedule) {
-                alert('❌ Для цього класу немає збереженого розкладу!');
-                return;
-            }
-
-            // Конвертуємо розклад у дані для Excel
-            const data = convertScheduleToExcelData(schedule, classItem.name);
-            
-            // Створюємо workbook
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Розклад');
-            
-            // Зберігаємо файл
-            XLSX.writeFile(wb, `Розклад_${classItem.name}.xlsx`);
-            alert(`✅ Розклад для класу ${classItem.name} збережено у файл!`);
-        }
-
-        function convertScheduleToExcelData(schedule, className) {
-            const data = [];
-            
-            // Заголовок
-            data.push([`Розклад занять для класу: ${className}`]);
-            data.push([]); // Пустий рядок
-            
-            // Заголовки таблиці
-            data.push(['Урок', 'Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця']);
-            
-            // Дані розкладу
-            for (let lesson = 1; lesson <= 7; lesson++) {
-                const row = [lesson];
-                
-                const days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
-                days.forEach(day => {
-                    const lessonData = schedule[day] ? schedule[day].find(l => l.lesson === lesson) : null;
-                    
-                    if (lessonData) {
-                        let cellText = lessonData.subject;
-                        if (lessonData.teacher) {
-                            cellText += `, ${lessonData.teacher}`;
-                        }
-                        if (lessonData.classroom) {
-                            cellText += `, ${lessonData.classroom}`;
-                        }
-                        row.push(cellText);
-                    } else {
-                        row.push('');
-                    }
-                });
-                
-                data.push(row);
-            }
-            
-            return data;
         }
 
         function saveSchoolData() {
