@@ -306,15 +306,57 @@
             border-radius: 8px;
             margin: 15px 0;
             border-left: 4px solid #ffc107;
+        }
+
+        .file-preview {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #e2e8f0;
             display: none;
         }
 
-        .class-selector {
-            background: #e3f2fd;
-            padding: 20px;
+        .preview-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            background: white;
+            padding: 30px;
             border-radius: 10px;
-            margin: 15px 0;
-            border-left: 4px solid #2196F3;
+            text-align: center;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -433,19 +475,12 @@
                 <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(this.files[0])">
             </div>
 
-            <div id="fileInfo" class="file-info">
-                <strong>📄 Інформація про файл:</strong>
-                <div id="fileName"></div>
-                <div id="fileSize"></div>
-                <div id="uploadStatus"></div>
-            </div>
-
-            <div class="class-selector">
-                <h4>🎯 Виберіть клас для розкладу:</h4>
-                <select id="selectedClassForSchedule" onchange="updateClassSelection()">
+            <!-- Вибір класу -->
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 10px; margin: 15px 0;">
+                <label style="display: block; margin-bottom: 8px; font-weight: bold;">🎯 Оберіть клас для розкладу:</label>
+                <select id="selectedClassForSchedule" style="width: 300px;">
                     <option value="">-- Оберіть клас --</option>
                 </select>
-                <div id="classSelectionInfo" style="margin-top: 10px; font-size: 14px; color: #666;"></div>
             </div>
 
             <div class="template-download">
@@ -460,7 +495,18 @@
                 </ul>
             </div>
 
-            <!-- Відображення розкладу -->
+            <!-- Попередній перегляд файлу -->
+            <div id="filePreview" class="file-preview">
+                <h4>👀 Попередній перегляд розкладу:</h4>
+                <div id="previewTable"></div>
+                <div class="preview-actions">
+                    <button class="btn-small" onclick="saveScheduleFromPreview()" style="background: #48bb78;">💾 Зберегти розклад</button>
+                    <button class="btn-small" onclick="replaceScheduleFromPreview()" style="background: #ffa500;">🔄 Замінити поточний</button>
+                    <button class="btn-small" onclick="deletePreview()" style="background: #ff6b6b;">❌ Видалити перегляд</button>
+                </div>
+            </div>
+
+            <!-- Відображення збереженого розкладу -->
             <div style="margin-bottom: 20px;">
                 <select id="scheduleClass" onchange="loadSchedule()">
                     <option value="">Оберіть клас для перегляду</option>
@@ -494,6 +540,14 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div>⏳ Зачекайте, викачуємо файл...</div>
+        </div>
+    </div>
+
     <!-- Підключаємо бібліотеки для роботи з Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
@@ -509,7 +563,8 @@
         };
 
         let currentClassId = null;
-        let selectedClassForImport = null;
+        let currentPreviewData = null;
+        let currentPreviewClassId = null;
 
         // Оновлюємо інтерфейс при завантаженні
         document.addEventListener('DOMContentLoaded', function() {
@@ -872,41 +927,18 @@
             });
         }
 
-        function updateClassSelection() {
-            const classId = document.getElementById('selectedClassForSchedule').value;
-            const infoDiv = document.getElementById('classSelectionInfo');
-            
-            if (classId) {
-                selectedClassForImport = classId;
-                const classItem = schoolData.classes.find(c => c.id == classId);
-                infoDiv.innerHTML = `✅ Обрано клас: <strong>${classItem.name}</strong>. Тепер завантажте файл розкладу.`;
-                infoDiv.style.color = '#4caf50';
-            } else {
-                selectedClassForImport = null;
-                infoDiv.innerHTML = '⚠️ Оберіть клас для завантаження розкладу';
-                infoDiv.style.color = '#ff9800';
-            }
-        }
-
         function handleFileUpload(file) {
             if (!file) return;
             
-            if (!selectedClassForImport) {
+            const classId = document.getElementById('selectedClassForSchedule').value;
+            if (!classId) {
                 alert('❌ Спочатку оберіть клас для завантаження розкладу!');
                 return;
             }
             
-            const fileInfo = document.getElementById('fileInfo');
-            const fileName = document.getElementById('fileName');
-            const fileSize = document.getElementById('fileSize');
-            const uploadStatus = document.getElementById('uploadStatus');
-            
-            // Показуємо інформацію про файл
-            fileInfo.style.display = 'block';
-            fileName.textContent = `📄 Файл: ${file.name}`;
-            fileSize.textContent = `📏 Розмір: ${(file.size / 1024).toFixed(2)} KB`;
-            uploadStatus.textContent = '⏳ Обробка файлу...';
-            uploadStatus.style.color = '#ff9800';
+            // Показуємо завантаження
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex';
             
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -919,32 +951,97 @@
                     const worksheet = workbook.Sheets[firstSheetName];
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
                     
-                    // Імпортуємо розклад для обраного класу
-                    importScheduleFromExcel(selectedClassForImport, jsonData);
+                    // Зберігаємо дані для попереднього перегляду
+                    currentPreviewData = jsonData;
+                    currentPreviewClassId = classId;
                     
-                    uploadStatus.textContent = '✅ Файл успішно оброблено! Розклад збережено.';
-                    uploadStatus.style.color = '#4caf50';
-                    
-                    // Оновлюємо відображення розкладу
-                    loadSchedule();
-                    
-                    setTimeout(() => {
-                        fileInfo.style.display = 'none';
-                    }, 5000);
+                    // Показуємо попередній перегляд
+                    showFilePreview(jsonData, classId);
                     
                 } catch (error) {
                     console.error('Помилка обробки файлу:', error);
-                    uploadStatus.textContent = '❌ Помилка при обробці файлу. Перевірте формат.';
-                    uploadStatus.style.color = '#f44336';
+                    alert('❌ Помилка при обробці файлу. Перевірте формат.');
+                } finally {
+                    // Ховаємо завантаження
+                    loadingOverlay.style.display = 'none';
                 }
             };
             
             reader.onerror = function() {
-                uploadStatus.textContent = '❌ Помилка читання файлу';
-                uploadStatus.style.color = '#f44336';
+                loadingOverlay.style.display = 'none';
+                alert('❌ Помилка читання файлу');
             };
             
             reader.readAsArrayBuffer(file);
+        }
+
+        function showFilePreview(data, classId) {
+            const classItem = schoolData.classes.find(c => c.id == classId);
+            const previewDiv = document.getElementById('filePreview');
+            const previewTable = document.getElementById('previewTable');
+            
+            let html = `<h5>Клас: ${classItem.name}</h5>`;
+            html += `<table class="schedule-table">`;
+            
+            // Заголовки
+            if (data.length > 0) {
+                html += `<tr>`;
+                data[0].forEach(header => {
+                    html += `<th>${header}</th>`;
+                });
+                html += `</tr>`;
+            }
+            
+            // Дані
+            for (let i = 1; i < data.length && i <= 7; i++) {
+                const row = data[i];
+                if (!row) continue;
+                
+                html += `<tr>`;
+                row.forEach(cell => {
+                    html += `<td>${cell || ''}</td>`;
+                });
+                html += `</tr>`;
+            }
+            
+            html += `</table>`;
+            previewTable.innerHTML = html;
+            previewDiv.style.display = 'block';
+            
+            // Прокручуємо до перегляду
+            previewDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function saveScheduleFromPreview() {
+            if (!currentPreviewData || !currentPreviewClassId) {
+                alert('❌ Немає даних для збереження');
+                return;
+            }
+            
+            importScheduleFromExcel(currentPreviewClassId, currentPreviewData);
+            alert('✅ Розклад успішно збережено!');
+            deletePreview();
+            loadSchedule();
+        }
+
+        function replaceScheduleFromPreview() {
+            if (!currentPreviewData || !currentPreviewClassId) {
+                alert('❌ Немає даних для заміни');
+                return;
+            }
+            
+            if (confirm('⚠️ Замінити поточний розклад? Старі дані будуть втрачені.')) {
+                importScheduleFromExcel(currentPreviewClassId, currentPreviewData);
+                alert('✅ Розклад успішно замінено!');
+                deletePreview();
+                loadSchedule();
+            }
+        }
+
+        function deletePreview() {
+            currentPreviewData = null;
+            currentPreviewClassId = null;
+            document.getElementById('filePreview').style.display = 'none';
         }
 
         function importScheduleFromExcel(classId, data) {
