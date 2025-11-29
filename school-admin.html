@@ -410,6 +410,10 @@
             margin: 15px 0;
             flex-wrap: wrap;
         }
+
+        .save-main-btn {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -526,7 +530,7 @@
         </div>
 
         <!-- РОЗКЛАД -->
-        <div id="schedule" class="tab-content">
+        <div id="schedule" class="tab-content active">
             <h3>📅 Розклад занять</h3>
             
             <div class="schedule-actions">
@@ -539,7 +543,7 @@
                 <button class="btn-small" onclick="clearAllSchedules()" style="background: #ff6b6b;">
                     🗑️ Очистити всі розклади
                 </button>
-                <button class="btn-small" onclick="exportAllSchedules()" style="background: #48bb78;">
+                <button class="btn-small save-main-btn" id="saveMainBtn" onclick="saveUploadedSchedule()" style="background: #48bb78;">
                     💾 Зберегти
                 </button>
             </div>
@@ -1119,6 +1123,9 @@
                     currentPreviewData = jsonData;
                     currentPreviewClassId = classId;
                     
+                    // Показуємо головну кнопку збереження
+                    document.getElementById('saveMainBtn').style.display = 'inline-block';
+                    
                     // Показуємо попередній перегляд
                     showFilePreview(jsonData, classId);
                     
@@ -1176,6 +1183,28 @@
             previewDiv.scrollIntoView({ behavior: 'smooth' });
         }
 
+        // НОВА ФУНКЦІЯ: Збереження з головної кнопки
+        function saveUploadedSchedule() {
+            if (!currentPreviewData || !currentPreviewClassId) {
+                alert('❌ Спочатку завантажте файл розкладу!');
+                return;
+            }
+            
+            importScheduleFromExcel(currentPreviewClassId, currentPreviewData);
+            alert('✅ Розклад успішно збережено!');
+            
+            // Ховаємо головну кнопку збереження
+            document.getElementById('saveMainBtn').style.display = 'none';
+            
+            deletePreview();
+            loadSchedule();
+            
+            // Оновлюємо розклад у вкладці класу, якщо він відкритий
+            if (currentClassId === currentPreviewClassId) {
+                loadClassSchedule(currentClassId);
+            }
+        }
+
         function saveScheduleFromPreview() {
             if (!currentPreviewData || !currentPreviewClassId) {
                 alert('❌ Немає даних для збереження');
@@ -1184,6 +1213,10 @@
             
             importScheduleFromExcel(currentPreviewClassId, currentPreviewData);
             alert('✅ Розклад успішно збережено!');
+            
+            // Ховаємо головну кнопку збереження
+            document.getElementById('saveMainBtn').style.display = 'none';
+            
             deletePreview();
             loadSchedule();
             
@@ -1202,6 +1235,10 @@
             if (confirm('⚠️ Замінити поточний розклад? Старі дані будуть втрачені.')) {
                 importScheduleFromExcel(currentPreviewClassId, currentPreviewData);
                 alert('✅ Розклад успішно замінено!');
+                
+                // Ховаємо головну кнопку збереження
+                document.getElementById('saveMainBtn').style.display = 'none';
+                
                 deletePreview();
                 loadSchedule();
                 
@@ -1216,6 +1253,8 @@
             currentPreviewData = null;
             currentPreviewClassId = null;
             document.getElementById('filePreview').style.display = 'none';
+            // Ховаємо головну кнопку збереження
+            document.getElementById('saveMainBtn').style.display = 'none';
         }
 
         function importScheduleFromExcel(classId, data) {
@@ -1368,7 +1407,7 @@
             display.innerHTML = html;
         }
 
-        // НОВІ ФУНКЦІЇ ДЛЯ ЗБЕРЕЖЕННЯ РОЗКЛАДУ
+        // ФУНКЦІЇ ДЛЯ ЗБЕРЕЖЕННЯ РОЗКЛАДУ
         function exportCurrentSchedule() {
             const classId = document.getElementById('scheduleClass').value;
             if (!classId) {
