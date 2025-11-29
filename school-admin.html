@@ -209,57 +209,104 @@
             background: #f8f9fa;
         }
         
-        .lesson-cell {
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .lesson-cell:hover {
-            background: #bbdefb !important;
-        }
-        
-        .schedule-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        
         .empty-lesson {
             color: #999;
             font-style: italic;
         }
-        
-        .schedule-editor {
+
+        /* Стилі для завантаження файлів */
+        .upload-container {
+            text-align: center;
+            padding: 40px;
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            margin: 20px 0;
             background: #f8f9fa;
-            padding: 20px;
-            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-container:hover {
+            background: #e3f2fd;
+            border-color: #764ba2;
+        }
+
+        .upload-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        .upload-text {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .upload-subtext {
+            color: #666;
             margin-bottom: 20px;
         }
-        
-        .editor-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 15px 0;
-            background: white;
+
+        .file-input {
+            display: none;
         }
-        
-        .editor-table th, .editor-table td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
-        
-        .editor-table th {
+
+        .upload-btn {
             background: #667eea;
             color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
         }
-        
-        .editor-table input {
-            width: 100%;
-            border: 1px solid #ddd;
-            padding: 8px;
-            margin: 0;
-            border-radius: 4px;
+
+        .upload-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .template-download {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #48bb78;
+        }
+
+        .schedule-actions {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .google-sheets-icon {
+            background: #34A853;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .google-sheets-icon:hover {
+            background: #2E8B47;
+            transform: translateY(-2px);
+        }
+
+        .file-info {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+            display: none;
         }
     </style>
 </head>
@@ -352,28 +399,59 @@
 
         <!-- РОЗКЛАД -->
         <div id="schedule" class="tab-content">
-            <h3>Розклад занять</h3>
+            <h3>📅 Розклад занять</h3>
+            
+            <div class="schedule-actions">
+                <div class="google-sheets-icon" onclick="document.getElementById('fileInput').click()">
+                    📊 Завантажити з Google Tables
+                </div>
+                <button class="btn-small" onclick="downloadTemplate()" style="background: #667eea;">
+                    📋 Завантажити шаблон
+                </button>
+                <button class="btn-small" onclick="clearAllSchedules()" style="background: #ff6b6b;">
+                    🗑️ Очистити всі розклади
+                </button>
+            </div>
+
+            <!-- Контейнер для завантаження -->
+            <div class="upload-container" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Завантажте файл розкладу</div>
+                <div class="upload-subtext">
+                    Підтримуються файли: Excel (.xlsx, .xls), CSV<br>
+                    Перетягніть файл сюди або клацніть для вибору
+                </div>
+                <button class="upload-btn">Обрати файл</button>
+                <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(this.files[0])">
+            </div>
+
+            <div id="fileInfo" class="file-info">
+                <strong>📄 Інформація про файл:</strong>
+                <div id="fileName"></div>
+                <div id="fileSize"></div>
+                <div id="uploadStatus"></div>
+            </div>
+
+            <div class="template-download">
+                <h4>💡 Як підготувати файл розкладу:</h4>
+                <p><strong>Формат таблиці:</strong></p>
+                <ul>
+                    <li>Перший рядок - заголовки: Урок, Понеділок, Вівторок, Середа, Четвер, П'ятниця</li>
+                    <li>Перший стовпець - номери уроків (1-7)</li>
+                    <li>В комірках вказуйте предмет, вчителя та кабінет через кому</li>
+                    <li>Приклад: "Математика, Іваненко І.І., каб. 205"</li>
+                </ul>
+            </div>
+
+            <!-- Відображення розкладу -->
             <div style="margin-bottom: 20px;">
                 <select id="scheduleClass" onchange="loadSchedule()">
-                    <option value="">Оберіть клас</option>
+                    <option value="">Оберіть клас для перегляду</option>
                 </select>
             </div>
-            
-            <div class="schedule-controls">
-                <button class="btn-small" onclick="showEditor()" id="editScheduleBtn">✏️ Створити/Редагувати розклад</button>
-                <button class="btn-small" onclick="saveSchedule()" id="saveScheduleBtn" style="display: none; background: #48bb78;">💾 Зберегти розклад</button>
-                <button class="btn-small" onclick="cancelEdit()" id="cancelEditBtn" style="display: none; background: #6c757d;">❌ Скасувати</button>
-            </div>
-            
-            <!-- Редактор розкладу -->
-            <div id="scheduleEditor" class="schedule-editor" style="display: none;">
-                <h4>📝 Редактор розкладу для класу: <span id="editorClassName"></span></h4>
-                <div id="editorTableContainer"></div>
-            </div>
-            
-            <!-- Відображення розкладу -->
+
             <div id="scheduleDisplay">
-                <p>Оберіть клас для перегляду розкладу</p>
+                <p>Оберіть клас для перегляду розкладу або завантажте новий розклад</p>
             </div>
         </div>
 
@@ -399,6 +477,8 @@
         </div>
     </div>
 
+    <!-- Підключаємо бібліотеки для роботи з Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         // Завантажуємо дані школи
         let schoolData = JSON.parse(localStorage.getItem('schoolData')) || {
@@ -408,11 +488,10 @@
             classes: [],
             admins: [],
             students: [],
-            schedules: {} // Додаємо зберігання розкладів
+            schedules: {}
         };
 
         let currentClassId = null;
-        let isEditingSchedule = false;
 
         // Оновлюємо інтерфейс при завантаженні
         document.addEventListener('DOMContentLoaded', function() {
@@ -761,128 +840,136 @@
             });
         }
 
-        function showEditor() {
-            const classId = document.getElementById('scheduleClass').value;
-            if (!classId) {
-                alert('Оберіть клас для створення розкладу');
-                return;
-            }
+        function handleFileUpload(file) {
+            if (!file) return;
             
-            const classItem = schoolData.classes.find(c => c.id == classId);
-            document.getElementById('editorClassName').textContent = classItem.name;
+            const fileInfo = document.getElementById('fileInfo');
+            const fileName = document.getElementById('fileName');
+            const fileSize = document.getElementById('fileSize');
+            const uploadStatus = document.getElementById('uploadStatus');
             
-            // Показуємо редактор
-            document.getElementById('scheduleEditor').style.display = 'block';
-            document.getElementById('scheduleDisplay').style.display = 'none';
+            // Показуємо інформацію про файл
+            fileInfo.style.display = 'block';
+            fileName.textContent = `📄 Файл: ${file.name}`;
+            fileSize.textContent = `📏 Розмір: ${(file.size / 1024).toFixed(2)} KB`;
+            uploadStatus.textContent = '⏳ Обробка файлу...';
+            uploadStatus.style.color = '#ff9800';
             
-            // Створюємо таблицю редактора
-            createEditorTable(classId);
-            
-            // Оновлюємо кнопки
-            document.getElementById('editScheduleBtn').style.display = 'none';
-            document.getElementById('saveScheduleBtn').style.display = 'inline-block';
-            document.getElementById('cancelEditBtn').style.display = 'inline-block';
-            
-            isEditingSchedule = true;
-        }
-
-        function createEditorTable(classId) {
-            // Отримуємо або створюємо розклад для класу
-            if (!schoolData.schedules[classId]) {
-                schoolData.schedules[classId] = createEmptySchedule();
-            }
-            
-            const schedule = schoolData.schedules[classId];
-            const container = document.getElementById('editorTableContainer');
-            
-            let html = `<table class="editor-table">`;
-            html += `<tr><th>Урок</th><th>Понеділок</th><th>Вівторок</th><th>Середа</th><th>Четвер</th><th>П'ятниця</th></tr>`;
-            
-            for (let lesson = 1; lesson <= 7; lesson++) {
-                html += `<tr><td><strong>${lesson}</strong></td>`;
-                
-                const days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
-                days.forEach(day => {
-                    const lessonData = schedule[day].find(l => l.lesson === lesson);
-                    html += `
-                        <td>
-                            <input type="text" placeholder="Предмет" value="${lessonData.subject || ''}" 
-                                   data-day="${day}" data-lesson="${lesson}" data-field="subject">
-                            <input type="text" placeholder="Вчитель" value="${lessonData.teacher || ''}" 
-                                   data-day="${day}" data-lesson="${lesson}" data-field="teacher">
-                            <input type="text" placeholder="Кабінет" value="${lessonData.classroom || ''}" 
-                                   data-day="${day}" data-lesson="${lesson}" data-field="classroom">
-                        </td>
-                    `;
-                });
-                
-                html += `</tr>`;
-            }
-            
-            html += `</table>`;
-            container.innerHTML = html;
-        }
-
-        function createEmptySchedule() {
-            const days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
-            const schedule = {};
-            
-            days.forEach(day => {
-                schedule[day] = [];
-                for (let i = 1; i <= 7; i++) {
-                    schedule[day].push({
-                        lesson: i,
-                        subject: '',
-                        teacher: '',
-                        classroom: ''
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    // Обробляємо кожен аркуш як окремий клас
+                    workbook.SheetNames.forEach(sheetName => {
+                        const worksheet = workbook.Sheets[sheetName];
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                        
+                        // Знаходимо клас за назвою аркуша
+                        const classItem = schoolData.classes.find(c => c.name === sheetName);
+                        if (classItem) {
+                            importScheduleFromExcel(classItem.id, jsonData);
+                        }
                     });
+                    
+                    uploadStatus.textContent = '✅ Файл успішно оброблено!';
+                    uploadStatus.style.color = '#4caf50';
+                    
+                    // Оновлюємо відображення розкладу
+                    loadSchedule();
+                    
+                    setTimeout(() => {
+                        fileInfo.style.display = 'none';
+                    }, 3000);
+                    
+                } catch (error) {
+                    uploadStatus.textContent = '❌ Помилка при обробці файлу: ' + error.message;
+                    uploadStatus.style.color = '#f44336';
                 }
-            });
-            
-            return schedule;
+            };
+            reader.readAsArrayBuffer(file);
         }
 
-        function saveSchedule() {
-            const classId = document.getElementById('scheduleClass').value;
-            if (!classId) return;
+        function importScheduleFromExcel(classId, data) {
+            if (!schoolData.schedules[classId]) {
+                schoolData.schedules[classId] = {
+                    'Понеділок': [], 'Вівторок': [], 'Середа': [], 'Четвер': [], 'П\'ятниця': []
+                };
+            }
             
-            // Збираємо дані з форми
-            const inputs = document.querySelectorAll('#editorTableContainer input');
             const schedule = schoolData.schedules[classId];
+            const days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
             
-            inputs.forEach(input => {
-                const day = input.getAttribute('data-day');
-                const lesson = parseInt(input.getAttribute('data-lesson'));
-                const field = input.getAttribute('data-field');
-                const value = input.value;
+            // Пропускаємо заголовок (перший рядок)
+            for (let i = 1; i < data.length && i <= 7; i++) {
+                const row = data[i];
+                if (!row) continue;
                 
-                const lessonIndex = schedule[day].findIndex(l => l.lesson === lesson);
-                if (lessonIndex !== -1) {
-                    schedule[day][lessonIndex][field] = value;
+                const lesson = parseInt(row[0]);
+                if (isNaN(lesson)) continue;
+                
+                for (let j = 1; j < row.length && j <= 5; j++) {
+                    const day = days[j-1];
+                    const cellValue = row[j] || '';
+                    
+                    if (cellValue) {
+                        // Розбираємо значення комірки (предмет, вчитель, кабінет)
+                        const parts = cellValue.split(',').map(part => part.trim());
+                        const subject = parts[0] || '';
+                        const teacher = parts[1] || '';
+                        const classroom = parts[2] || '';
+                        
+                        // Видаляємо старий урок, якщо він є
+                        schedule[day] = schedule[day].filter(l => l.lesson !== lesson);
+                        
+                        // Додаємо новий урок
+                        schedule[day].push({
+                            lesson: lesson,
+                            subject: subject,
+                            teacher: teacher,
+                            classroom: classroom
+                        });
+                        
+                        // Сортуємо уроки
+                        schedule[day].sort((a, b) => a.lesson - b.lesson);
+                    }
                 }
-            });
+            }
             
             saveSchoolData();
-            
-            // Повертаємося до перегляду
-            document.getElementById('scheduleEditor').style.display = 'none';
-            document.getElementById('scheduleDisplay').style.display = 'block';
-            document.getElementById('editScheduleBtn').style.display = 'inline-block';
-            document.getElementById('saveScheduleBtn').style.display = 'none';
-            document.getElementById('cancelEditBtn').style.display = 'none';
-            
-            loadSchedule(); // Оновлюємо відображення
-            alert('✅ Розклад успішно збережено!');
         }
 
-        function cancelEdit() {
-            document.getElementById('scheduleEditor').style.display = 'none';
-            document.getElementById('scheduleDisplay').style.display = 'block';
-            document.getElementById('editScheduleBtn').style.display = 'inline-block';
-            document.getElementById('saveScheduleBtn').style.display = 'none';
-            document.getElementById('cancelEditBtn').style.display = 'none';
+        function downloadTemplate() {
+            // Створюємо дані для шаблону
+            const data = [];
+            const headers = ['Урок', 'Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
+            data.push(headers);
             
-            loadSchedule(); // Перезавантажуємо оригінальний розклад
+            for (let lesson = 1; lesson <= 7; lesson++) {
+                const row = [lesson];
+                for (let i = 1; i < headers.length; i++) {
+                    row.push(''); // Порожні клітинки
+                }
+                data.push(row);
+            }
+            
+            // Створюємо workbook
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Шаблон');
+            
+            // Зберігаємо файл
+            XLSX.writeFile(wb, `Шаблон_розкладу.xlsx`);
+        }
+
+        function clearAllSchedules() {
+            if (confirm('Видалити всі розклади? Цю дію не можна скасувати.')) {
+                schoolData.schedules = {};
+                saveSchoolData();
+                loadSchedule();
+                alert('✅ Всі розклади видалено!');
+            }
         }
 
         function loadSchedule() {
@@ -900,7 +987,7 @@
             if (!schedule) {
                 display.innerHTML = `
                     <h4>Розклад для ${classItem.name}</h4>
-                    <p>Розклад ще не створено. Натисніть "Створити/Редагувати розклад" щоб створити розклад.</p>
+                    <p>Розклад ще не створено. Завантажте файл розкладу.</p>
                 `;
                 return;
             }
@@ -914,22 +1001,25 @@
                 
                 const days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
                 days.forEach(day => {
-                    const lessonData = schedule[day].find(l => l.lesson === lesson);
+                    const lessonData = schedule[day] ? schedule[day].find(l => l.lesson === lesson) : null;
                     const subject = lessonData ? lessonData.subject : '';
                     const teacher = lessonData ? lessonData.teacher : '';
                     const classroom = lessonData ? lessonData.classroom : '';
                     
                     let displayText = '';
                     if (subject) {
-                        displayText = `<strong>${subject}</strong><br><small>${teacher}</small>`;
+                        displayText = `<strong>${subject}</strong>`;
+                        if (teacher) {
+                            displayText += `<br><small>${teacher}</small>`;
+                        }
                         if (classroom) {
-                            displayText += `<br><small>каб. ${classroom}</small>`;
+                            displayText += `<br><small>${classroom}</small>`;
                         }
                     } else {
                         displayText = '<span class="empty-lesson">---</span>';
                     }
                     
-                    html += `<td class="lesson-cell">${displayText}</td>`;
+                    html += `<td>${displayText}</td>`;
                 });
                 
                 html += `</tr>`;
@@ -953,20 +1043,39 @@
             
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
-            
-            // При переключенні на вкладку розкладу ховаємо редактор
-            if (tabName === 'schedule') {
-                document.getElementById('scheduleEditor').style.display = 'none';
-                document.getElementById('scheduleDisplay').style.display = 'block';
-                document.getElementById('editScheduleBtn').style.display = 'inline-block';
-                document.getElementById('saveScheduleBtn').style.display = 'none';
-                document.getElementById('cancelEditBtn').style.display = 'none';
-            }
         }
 
         function logout() {
             window.location.href = 'index.html';
         }
+
+        // Додаємо drag and drop
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadContainer = document.querySelector('.upload-container');
+            
+            uploadContainer.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.background = '#e3f2fd';
+                this.style.borderColor = '#764ba2';
+            });
+            
+            uploadContainer.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.style.background = '#f8f9fa';
+                this.style.borderColor = '#667eea';
+            });
+            
+            uploadContainer.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.background = '#f8f9fa';
+                this.style.borderColor = '#667eea';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileUpload(files[0]);
+                }
+            });
+        });
     </script>
 </body>
 </html>
