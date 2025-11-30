@@ -410,10 +410,6 @@
             margin: 15px 0;
             flex-wrap: wrap;
         }
-
-        .save-main-btn {
-            display: none;
-        }
     </style>
 </head>
 <body>
@@ -512,10 +508,6 @@
                         <p>Тут відображається розклад для цього класу</p>
                     </div>
                     
-                    <div class="export-actions">
-                        <button class="btn-small" onclick="exportClassSchedule()" style="background: #48bb78;">💾 Зберегти</button>
-                    </div>
-                    
                     <div id="classScheduleDisplay">
                         <p>Завантажте розклад для цього класу у вкладці "Розклад"</p>
                     </div>
@@ -543,8 +535,8 @@
                 <button class="btn-small" onclick="clearAllSchedules()" style="background: #ff6b6b;">
                     🗑️ Очистити всі розклади
                 </button>
-                <button class="btn-small save-main-btn" id="saveMainBtn" onclick="saveUploadedSchedule()" style="background: #48bb78;">
-                    💾 Зберегти розклад
+                <button class="btn-small" id="saveScheduleBtn" onclick="saveSchedule()" style="background: #48bb78; display: none;">
+                    💾 Зберегти
                 </button>
             </div>
 
@@ -637,8 +629,8 @@
         };
 
         let currentClassId = null;
-        let currentPreviewData = null;
-        let currentPreviewClassId = null;
+        let uploadedScheduleData = null;
+        let selectedClassForUpload = null;
 
         // Оновлюємо інтерфейс при завантаженні
         document.addEventListener('DOMContentLoaded', function() {
@@ -1089,6 +1081,8 @@
                 return;
             }
             
+            selectedClassForUpload = classId;
+            
             // Показуємо завантаження
             const loadingOverlay = document.getElementById('loadingOverlay');
             loadingOverlay.style.display = 'flex';
@@ -1104,14 +1098,13 @@
                     const worksheet = workbook.Sheets[firstSheetName];
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
                     
-                    // Зберігаємо дані для попереднього перегляду
-                    currentPreviewData = jsonData;
-                    currentPreviewClassId = classId;
+                    // Зберігаємо дані
+                    uploadedScheduleData = jsonData;
                     
-                    // Показуємо головну кнопку збереження
-                    document.getElementById('saveMainBtn').style.display = 'inline-block';
+                    // Показуємо кнопку збереження
+                    document.getElementById('saveScheduleBtn').style.display = 'inline-block';
                     
-                    alert('✅ Файл успішно завантажено! Натисніть "Зберегти розклад" щоб зберегти його у систему.');
+                    alert('✅ Файл успішно завантажено! Натисніть "Зберегти" щоб додати розклад до класу.');
                     
                 } catch (error) {
                     console.error('Помилка обробки файлу:', error);
@@ -1130,33 +1123,35 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // НОВА ФУНКЦІЯ: Збереження з головної кнопки
-        function saveUploadedSchedule() {
-            if (!currentPreviewData || !currentPreviewClassId) {
-                alert('❌ Спочатку завантажте файл розкладу!');
+        // Проста функція збереження
+        function saveSchedule() {
+            if (!uploadedScheduleData || !selectedClassForUpload) {
+                alert('❌ Спочатку завантажте файл розкладу та оберіть клас!');
                 return;
             }
             
-            importScheduleFromExcel(currentPreviewClassId, currentPreviewData);
+            // Імпортуємо розклад
+            importScheduleFromExcel(selectedClassForUpload, uploadedScheduleData);
+            
             alert('✅ Розклад успішно збережено для класу!');
             
-            // Ховаємо головну кнопку збереження
-            document.getElementById('saveMainBtn').style.display = 'none';
+            // Ховаємо кнопку збереження
+            document.getElementById('saveScheduleBtn').style.display = 'none';
             
             // Оновлюємо вибір класу для перегляду
-            document.getElementById('scheduleClass').value = currentPreviewClassId;
+            document.getElementById('scheduleClass').value = selectedClassForUpload;
             
             // Завантажуємо збережений розклад
             loadSchedule();
             
             // Оновлюємо розклад у вкладці класу, якщо він відкритий
-            if (currentClassId === currentPreviewClassId) {
+            if (currentClassId === selectedClassForUpload) {
                 loadClassSchedule(currentClassId);
             }
             
-            // Очищаємо дані перегляду
-            currentPreviewData = null;
-            currentPreviewClassId = null;
+            // Очищаємо дані
+            uploadedScheduleData = null;
+            selectedClassForUpload = null;
         }
 
         function importScheduleFromExcel(classId, data) {
