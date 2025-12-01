@@ -487,6 +487,15 @@
             margin: 20px 0;
             border-left: 4px solid #48bb78;
         }
+        
+        .head-teacher-badge {
+            background: #ffc107;
+            color: #333;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -564,6 +573,7 @@
                 <!-- Вкладки класу -->
                 <div class="class-tabs">
                     <button class="class-tab active" onclick="openClassTab('classStudents')">👨‍🎓 Учні класу</button>
+                    <button class="class-tab" onclick="openClassTab('classTeachers')">👨‍🏫 Викладачі класу</button>
                     <button class="class-tab" onclick="openClassTab('classSchedule')">📅 Розклад класу</button>
                 </div>
 
@@ -577,6 +587,24 @@
                     
                     <h4>Список учнів:</h4>
                     <div class="students-list" id="studentsList"></div>
+                </div>
+
+                <!-- Вкладка викладачів -->
+                <div id="classTeachers" class="class-tab-content">
+                    <div style="margin-bottom: 20px;">
+                        <h4>👨‍🏫 Викладачі, що мають доступ до класу</h4>
+                        <p>Ці вчителі можуть переглядати інформацію про клас та учнів</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 20px;">
+                        <select id="teacherToAdd">
+                            <option value="">Оберіть вчителя</option>
+                        </select>
+                        <button class="btn-small" onclick="addTeacherToClass()" style="background: #667eea;">+ Додати вчителя</button>
+                    </div>
+                    
+                    <h4>Список викладачів:</h4>
+                    <div class="students-list" id="classTeachersList"></div>
                 </div>
 
                 <!-- Вкладка розкладу -->
@@ -775,8 +803,30 @@
         let selectedClassForUpload = null;
         let currentGPTSchedule = null;
 
+        // Функція для перевірки та виправлення даних
+        function checkSchoolData() {
+            // Перевіряємо, чи всі класи мають teacherId
+            schoolData.classes.forEach(classItem => {
+                if (!classItem.teacherId && classItem.teacher) {
+                    // Спробуємо знайти teacherId за іменем
+                    const foundTeacher = schoolData.teachers.find(t => t.name === classItem.teacher);
+                    if (foundTeacher) {
+                        classItem.teacherId = foundTeacher.id;
+                    }
+                }
+                
+                // Ініціалізуємо масив teachers якщо його немає
+                if (!classItem.teachers) {
+                    classItem.teachers = [];
+                }
+            });
+            
+            saveSchoolData();
+        }
+
         // Оновлюємо інтерфейс при завантаженні
         document.addEventListener('DOMContentLoaded', function() {
+            checkSchoolData(); // Перевіряємо та виправляємо дані
             updateSchoolTitle();
             updateStats();
             loadTeachers();
@@ -1022,6 +1072,135 @@
             container.scrollTop = container.scrollHeight;
         }
 
+        // Функції для роботи з викладачами класу
+        function loadClassTeachers(classId) {
+            const classItem = schoolData.classes.find(c => c.id == classId);
+            if (!classItem) return;
+            
+            const teachersList = document.getElementById('classTeachersList');
+            const teacherSelect = document.getElementById('teacherToAdd');
+            
+            // Оновлюємо вибір вчителів
+            teacherSelect.innerHTML = '<option value="">Оберіть вчителя</option>';
+            
+            schoolData.teachers.forEach(teacher => {
+                // Перевіряємо, чи вчитель вже доданий або це класний керівник
+                const isAlreadyAdded = classItem.teachers && classItem.teachers.includes(teacher.id);
+                const isHeadTeacher = classItem.teacherId === teacher.id;
+                
+                if (!isAlreadyAdded && !isHeadTeacher) {
+                    const option = document.createElement('option');
+                    option.value = teacher.id;
+                    option.textContent = `${teacher.name} (${teacher.subject})`;
+                    teacherSelect.appendChild(option);
+                }
+            });
+            
+            // Оновлюємо список вчителів класу
+            teachersList.innerHTML = '';
+            
+            // Додаємо класного керівника
+            if (classItem.teacherId) {
+                const headTeacher = schoolData.teachers.find(t => t.id == classItem.teacherId);
+                if (headTeacher) {
+                    const item = document.createElement('div');
+                    item.className = 'student-item';
+                    item.innerHTML = `
+                        <div>
+                            <strong>${headTeacher.name}</strong><br>
+                            <small>${headTeacher.email} | ${headTeacher.subject}</small>
+                        </div>
+                        <div>
+                            <span class="head-teacher-badge">👑 Класний керівник</span>
+                        </div>
+                    `;
+                    teachersList.appendChild(item);
+                }
+            }
+            
+            // Додаємо інших вчителів
+            if (classItem.teachers && classItem.teachers.length > 0) {
+                classItem.teachers.forEach(teacherId => {
+                    const teacher = schoolData.teachers.find(t => t.id == teacherId);
+                    if (teacher) {
+                        const item = document.createElement('div');
+                        item.className = 'student-item';
+                        item.innerHTML = `
+                            <div>
+                                <strong>${teacher.name}</strong><br>
+                                <small>${teacher.email} | ${teacher.subject}</small>
+                            </div>
+                            <div>
+                                <button class="btn-small" style="background: #ff6b6b;" onclick="removeTeacherFromClass(${teacherId}, ${classId})">Видалити</button>
+                            </div>
+                        `;
+                        teachersList.appendChild(item);
+                    }
+                });
+            } else {
+                const noTeachersMsg = document.createElement('div');
+                noTeachersMsg.innerHTML = '<p style="text-align: center; color: #666; padding: 10px;">👨‍🏫 Жодного додаткового вчителя ще не додано</p>';
+                teachersList.appendChild(noTeachersMsg);
+            }
+        }
+
+        function addTeacherToClass() {
+            if (!currentClassId) {
+                alert('❌ Спочатку оберіть клас!');
+                return;
+            }
+            
+            const teacherSelect = document.getElementById('teacherToAdd');
+            const teacherId = parseInt(teacherSelect.value);
+            
+            if (!teacherId) {
+                alert('❌ Оберіть вчителя зі списку!');
+                return;
+            }
+            
+            const classItem = schoolData.classes.find(c => c.id == currentClassId);
+            
+            if (!classItem) {
+                alert('❌ Клас не знайдено!');
+                return;
+            }
+            
+            // Ініціалізуємо масив teachers якщо його немає
+            if (!classItem.teachers) {
+                classItem.teachers = [];
+            }
+            
+            // Перевіряємо, чи вчитель вже доданий
+            if (classItem.teachers.includes(teacherId) || teacherId === classItem.teacherId) {
+                alert('❌ Цей вчитель вже має доступ до класу!');
+                teacherSelect.value = '';
+                return;
+            }
+            
+            // Додаємо вчителя
+            classItem.teachers.push(teacherId);
+            saveSchoolData();
+            loadClassTeachers(currentClassId);
+            
+            alert('✅ Вчителя успішно додано до класу!');
+            teacherSelect.value = '';
+        }
+
+        function removeTeacherFromClass(teacherId, classId) {
+            if (confirm('Видалити доступ цього вчителя до класу?')) {
+                const classItem = schoolData.classes.find(c => c.id == classId);
+                
+                if (!classItem || !classItem.teachers) return;
+                
+                // Видаляємо вчителя з масиву
+                classItem.teachers = classItem.teachers.filter(id => id !== teacherId);
+                saveSchoolData();
+                loadClassTeachers(classId);
+                
+                alert('✅ Доступ вчителя видалено!');
+            }
+        }
+
         // Основні функції системи
         function updateSchoolTitle() {
             document.getElementById('schoolTitle').textContent = schoolData.name;
@@ -1120,7 +1299,9 @@
                     grade: grade,
                     letter: letter,
                     teacher: teacher.name,
-                    students: []
+                    teacherId: parseInt(teacherId), // Правильно зберігаємо teacherId
+                    students: [],
+                    teachers: [] // Масив для додаткових вчителів
                 };
                 
                 schoolData.classes.push(newClass);
@@ -1133,6 +1314,7 @@
                 
                 document.getElementById('classGrade').value = '';
                 document.getElementById('classLetter').value = '';
+                document.getElementById('classTeacher').value = '';
             } else {
                 alert('❌ Заповніть всі поля!');
             }
@@ -1159,12 +1341,18 @@
             currentClassId = classId;
             const classItem = schoolData.classes.find(c => c.id == classId);
             
+            if (!classItem) {
+                alert('❌ Клас не знайдено!');
+                return;
+            }
+            
             document.getElementById('className').textContent = classItem.name;
             document.getElementById('classesList').style.display = 'none';
             document.getElementById('classDetails').style.display = 'block';
             
             // Завантажуємо вкладку учнів за замовчуванням
             loadStudents(classId);
+            loadClassTeachers(classId);
             loadClassSchedule(classId);
         }
 
@@ -1181,9 +1369,11 @@
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
             
-            // Якщо відкриваємо вкладку розкладу, оновлюємо його
+            // Завантажуємо дані для вкладки
             if (tabName === 'classSchedule') {
                 loadClassSchedule(currentClassId);
+            } else if (tabName === 'classTeachers') {
+                loadClassTeachers(currentClassId);
             }
         }
 
@@ -1194,7 +1384,10 @@
         }
 
         function addStudent() {
-            if (!currentClassId) return;
+            if (!currentClassId) {
+                alert('❌ Спочатку оберіть клас!');
+                return;
+            }
             
             const name = document.getElementById('studentName').value;
             const email = document.getElementById('studentEmail').value;
@@ -1235,6 +1428,7 @@
             list.innerHTML = '';
             
             const classItem = schoolData.classes.find(c => c.id == classId);
+            if (!classItem) return;
             
             if (classItem.students.length === 0) {
                 list.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">👨‍🎓 У цьому класі ще немає учнів</p>';
@@ -1262,6 +1456,8 @@
             const display = document.getElementById('classScheduleDisplay');
             const schedule = schoolData.schedules[classId];
             const classItem = schoolData.classes.find(c => c.id == classId);
+            
+            if (!classItem) return;
             
             if (!schedule) {
                 display.innerHTML = `
@@ -1318,7 +1514,9 @@
                 
                 // Видаляємо з класу
                 const classItem = schoolData.classes.find(c => c.id == classId);
-                classItem.students = classItem.students.filter(student => student.id !== studentId);
+                if (classItem) {
+                    classItem.students = classItem.students.filter(student => student.id !== studentId);
+                }
                 
                 saveSchoolData();
                 loadStudents(classId);
