@@ -314,7 +314,6 @@
             border-radius: 10px;
             margin: 20px 0;
             border: 2px solid #e2e8f0;
-            display: none;
         }
 
         .preview-actions {
@@ -496,6 +495,15 @@
             font-size: 12px;
             font-weight: 600;
         }
+        
+        .upload-success {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -642,7 +650,7 @@
                     🗑️ Очистити всі розклади
                 </button>
                 <button class="btn-small" id="saveScheduleBtn" onclick="saveSchedule()" style="background: #48bb78; display: none;">
-                    💾 Зберегти
+                    💾 Зберегти розклад
                 </button>
             </div>
 
@@ -655,7 +663,7 @@
                     Перетягніть файл сюди або клацніть для вибору
                 </div>
                 <button class="upload-btn">Обрати файл</button>
-                <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(this.files[0])">
+                <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(event)">
             </div>
 
             <!-- Вибір класу -->
@@ -664,6 +672,16 @@
                 <select id="selectedClassForSchedule" style="width: 300px;" onchange="updateSelectedClass()">
                     <option value="">-- Оберіть клас --</option>
                 </select>
+            </div>
+
+            <!-- Прев'ю завантаженого розкладу -->
+            <div id="filePreview" class="file-preview" style="display: none;">
+                <h4>📝 Перегляд завантаженого розкладу:</h4>
+                <div id="previewContent"></div>
+                <div class="preview-actions">
+                    <button class="btn-small" onclick="saveSchedule()" style="background: #48bb78;">💾 Зберегти розклад</button>
+                    <button class="btn-small" onclick="clearPreview()" style="background: #ff6b6b;">🗑️ Скасувати</button>
+                </div>
             </div>
 
             <div class="template-download">
@@ -680,6 +698,7 @@
 
             <!-- Відображення збереженого розкладу -->
             <div style="margin-bottom: 20px;">
+                <h4>📖 Перегляд збереженого розкладу:</h4>
                 <select id="scheduleClass" onchange="loadSchedule()">
                     <option value="">Оберіть клас для перегляду</option>
                 </select>
@@ -775,7 +794,7 @@
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner">
             <div class="spinner"></div>
-            <div>⏳ Зачекайте, викачуємо файл...</div>
+            <div>⏳ Зачекайте, обробляємо файл...</div>
         </div>
     </div>
 
@@ -802,6 +821,7 @@
         let uploadedScheduleData = null;
         let selectedClassForUpload = null;
         let currentGPTSchedule = null;
+        let currentSchedulePreview = null;
 
         // Функція для перевірки та виправлення даних
         function checkSchoolData() {
@@ -838,11 +858,255 @@
             populateClassForScheduleSelect();
             populateGPTClassSelect();
             loadSubjects();
+            
+            // Приховуємо кнопку "Зберегти" при завантаженні
+            document.getElementById('saveScheduleBtn').style.display = 'none';
         });
 
-        // Нова функція для оновлення вибраного класу
+        // Функція для оновлення вибраного класу
         function updateSelectedClass() {
             selectedClassForUpload = document.getElementById('selectedClassForSchedule').value;
+            console.log('Вибраний клас для розкладу:', selectedClassForUpload);
+            
+            // Якщо є завантажені дані, показуємо кнопку збереження
+            if (uploadedScheduleData && selectedClassForUpload) {
+                document.getElementById('saveScheduleBtn').style.display = 'inline-block';
+            }
+        }
+
+        // Функція для завантаження файлу
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                console.log('Файл не вибрано');
+                return;
+            }
+            
+            console.log('Завантаження файлу:', file.name);
+            
+            // Перевіряємо, чи обраний клас
+            const classId = document.getElementById('selectedClassForSchedule').value;
+            if (!classId) {
+                alert('❌ Спочатку оберіть клас для завантаження розкладу!');
+                return;
+            }
+            
+            selectedClassForUpload = classId;
+            
+            // Показуємо завантаження
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex';
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    
+                    // Беремо перший аркуш
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+                    
+                    // Зберігаємо дані
+                    uploadedScheduleData = jsonData;
+                    
+                    // Конвертуємо дані для попереднього перегляду
+                    currentSchedulePreview = convertExcelToSchedule(jsonData);
+                    
+                    if (currentSchedulePreview) {
+                        // Показуємо попередній перегляд
+                        showSchedulePreview(currentSchedulePreview, classId);
+                        
+                        // Показуємо кнопку збереження
+                        document.getElementById('saveScheduleBtn').style.display = 'inline-block';
+                        
+                        console.log('Файл успішно завантажено, кнопка збереження активована');
+                    } else {
+                        alert('❌ Помилка при обробці файлу. Перевірте формат.');
+                    }
+                    
+                } catch (error) {
+                    console.error('Помилка обробки файлу:', error);
+                    alert('❌ Помилка при обробці файлу. Перевірте формат.');
+                } finally {
+                    // Ховаємо завантаження
+                    loadingOverlay.style.display = 'none';
+                }
+            };
+            
+            reader.onerror = function() {
+                loadingOverlay.style.display = 'none';
+                alert('❌ Помилка читання файлу');
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Функція для показу попереднього перегляду розкладу
+        function showSchedulePreview(schedule, classId) {
+            const previewContainer = document.getElementById('filePreview');
+            const previewContent = document.getElementById('previewContent');
+            
+            const classItem = schoolData.classes.find(c => c.id == classId);
+            const className = classItem ? classItem.name : 'Обраний клас';
+            
+            let html = `<div class="upload-success">✅ Файл успішно завантажено для класу: ${className}</div>`;
+            html += `<h5>Попередній перегляд розкладу:</h5>`;
+            html += `<table class="schedule-table">`;
+            html += `<tr><th>Урок</th><th>Понеділок</th><th>Вівторок</th><th>Середа</th><th>Четвер</th><th>П'ятниця</th></tr>`;
+            
+            for (let lesson = 1; lesson <= 7; lesson++) {
+                html += `<tr><td><strong>${lesson}</strong></td>`;
+                
+                const days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
+                days.forEach(day => {
+                    const lessonData = schedule[day] ? schedule[day].find(l => l.lesson === lesson) : null;
+                    const subject = lessonData ? lessonData.subject : '';
+                    const teacher = lessonData ? lessonData.teacher : '';
+                    const classroom = lessonData ? lessonData.classroom : '';
+                    
+                    let displayText = '';
+                    if (subject) {
+                        displayText = `<strong>${subject}</strong>`;
+                        if (teacher) {
+                            displayText += `<br><small>${teacher}</small>`;
+                        }
+                        if (classroom) {
+                            displayText += `<br><small>${classroom}</small>`;
+                        }
+                    } else {
+                        displayText = '<span class="empty-lesson">---</span>';
+                    }
+                    
+                    html += `<td>${displayText}</td>`;
+                });
+                
+                html += `</tr>`;
+            }
+            
+            html += `</table>`;
+            previewContent.innerHTML = html;
+            previewContainer.style.display = 'block';
+            
+            // Прокручуємо до прев'ю
+            previewContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Функція для очищення прев'ю
+        function clearPreview() {
+            document.getElementById('filePreview').style.display = 'none';
+            document.getElementById('saveScheduleBtn').style.display = 'none';
+            uploadedScheduleData = null;
+            currentSchedulePreview = null;
+            document.getElementById('fileInput').value = '';
+        }
+
+        // Функція для конвертації даних Excel у наш формат
+        function convertExcelToSchedule(data) {
+            if (!data || data.length < 2) {
+                console.log('Немає даних для конвертації');
+                return null;
+            }
+            
+            console.log('Конвертація даних Excel, рядків:', data.length);
+            
+            const schedule = {
+                'Понеділок': [],
+                'Вівторок': [],
+                'Середа': [],
+                'Четвер': [],
+                'П\'ятниця': []
+            };
+            
+            const days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
+            
+            // Пропускаємо заголовок
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row || row.length < 6) continue;
+                
+                const lesson = parseInt(row[0]);
+                if (isNaN(lesson)) continue;
+                
+                for (let j = 1; j <= 5; j++) {
+                    const day = days[j-1];
+                    const cellValue = row[j] || '';
+                    
+                    if (cellValue && typeof cellValue === 'string' && cellValue.trim() !== '') {
+                        // Розбираємо значення комірки
+                        const parts = cellValue.split(',').map(part => part.trim());
+                        const subject = parts[0] || '';
+                        const teacher = parts[1] || '';
+                        const classroom = parts[2] || '';
+                        
+                        if (subject) {
+                            schedule[day].push({
+                                lesson: lesson,
+                                subject: subject,
+                                teacher: teacher,
+                                classroom: classroom
+                            });
+                        }
+                    }
+                }
+            }
+            
+            // Сортуємо уроки в кожен день
+            Object.keys(schedule).forEach(day => {
+                schedule[day].sort((a, b) => a.lesson - b.lesson);
+            });
+            
+            console.log('Конвертований розклад:', schedule);
+            return schedule;
+        }
+
+        // Виправлена функція збереження розкладу
+        function saveSchedule() {
+            console.log('Збереження розкладу...');
+            
+            if (!uploadedScheduleData || !selectedClassForUpload) {
+                alert('❌ Спочатку завантажте файл розкладу та оберіть клас!');
+                return;
+            }
+            
+            // Конвертуємо дані Excel у нашу структуру
+            const schedule = convertExcelToSchedule(uploadedScheduleData);
+            
+            if (!schedule) {
+                alert('❌ Помилка при конвертації розкладу. Перевірте формат файлу.');
+                return;
+            }
+            
+            // Зберігаємо розклад
+            schoolData.schedules[selectedClassForUpload] = schedule;
+            saveSchoolData();
+            
+            alert('✅ Розклад успішно збережено для класу!');
+            
+            // Ховаємо кнопку збереження
+            document.getElementById('saveScheduleBtn').style.display = 'none';
+            document.getElementById('filePreview').style.display = 'none';
+            
+            // Оновлюємо вибір класу для перегляду
+            const scheduleClassSelect = document.getElementById('scheduleClass');
+            scheduleClassSelect.value = selectedClassForUpload;
+            
+            // Завантажуємо збережений розклад
+            loadSchedule();
+            
+            // Оновлюємо розклад у вкладці класу, якщо він відкритий
+            if (currentClassId === selectedClassForUpload) {
+                loadClassSchedule(currentClassId);
+            }
+            
+            // Очищаємо дані
+            uploadedScheduleData = null;
+            currentSchedulePreview = null;
+            selectedClassForUpload = null;
+            
+            // Очищаємо поле вибору файлу
+            document.getElementById('fileInput').value = '';
         }
 
         // Функції для NovaGPT
@@ -1656,209 +1920,6 @@
             });
         }
 
-        function handleFileUpload(file) {
-            if (!file) return;
-            
-            const classId = document.getElementById('selectedClassForSchedule').value;
-            if (!classId) {
-                alert('❌ Спочатку оберіть клас для завантаження розкладу!');
-                return;
-            }
-            
-            selectedClassForUpload = classId;
-            
-            // Показуємо завантаження
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            loadingOverlay.style.display = 'flex';
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    
-                    // Беремо перший аркуш
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
-                    
-                    // Зберігаємо дані
-                    uploadedScheduleData = jsonData;
-                    
-                    // Показуємо кнопку збереження
-                    document.getElementById('saveScheduleBtn').style.display = 'inline-block';
-                    
-                    alert('✅ Файл успішно завантажено! Натисніть "Зберегти" щоб додати розклад до класу.');
-                    
-                } catch (error) {
-                    console.error('Помилка обробки файлу:', error);
-                    alert('❌ Помилка при обробці файлу. Перевірте формат.');
-                } finally {
-                    // Ховаємо завантаження
-                    loadingOverlay.style.display = 'none';
-                }
-            };
-            
-            reader.onerror = function() {
-                loadingOverlay.style.display = 'none';
-                alert('❌ Помилка читання файлу');
-            };
-            
-            reader.readAsArrayBuffer(file);
-        }
-
-        // Нова функція для конвертації даних Excel у наш формат
-        function convertExcelToSchedule(data) {
-            if (!data || data.length < 2) {
-                return null;
-            }
-            
-            const schedule = {
-                'Понеділок': [],
-                'Вівторок': [],
-                'Середа': [],
-                'Четвер': [],
-                'П\'ятниця': []
-            };
-            
-            const days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
-            
-            // Пропускаємо заголовок
-            for (let i = 1; i < data.length; i++) {
-                const row = data[i];
-                if (!row || row.length < 6) continue;
-                
-                const lesson = parseInt(row[0]);
-                if (isNaN(lesson)) continue;
-                
-                for (let j = 1; j <= 5; j++) {
-                    const day = days[j-1];
-                    const cellValue = row[j] || '';
-                    
-                    if (cellValue && typeof cellValue === 'string' && cellValue.trim() !== '') {
-                        // Розбираємо значення комірки
-                        const parts = cellValue.split(',').map(part => part.trim());
-                        const subject = parts[0] || '';
-                        const teacher = parts[1] || '';
-                        const classroom = parts[2] || '';
-                        
-                        if (subject) {
-                            schedule[day].push({
-                                lesson: lesson,
-                                subject: subject,
-                                teacher: teacher,
-                                classroom: classroom
-                            });
-                        }
-                    }
-                }
-            }
-            
-            // Сортуємо уроки в кожен день
-            Object.keys(schedule).forEach(day => {
-                schedule[day].sort((a, b) => a.lesson - b.lesson);
-            });
-            
-            return schedule;
-        }
-
-        // Виправлена функція збереження розкладу
-        function saveSchedule() {
-            if (!uploadedScheduleData || !selectedClassForUpload) {
-                alert('❌ Спочатку завантажте файл розкладу та оберіть клас!');
-                return;
-            }
-            
-            // Конвертуємо дані Excel у нашу структуру
-            const schedule = convertExcelToSchedule(uploadedScheduleData);
-            
-            if (!schedule) {
-                alert('❌ Помилка при конвертації розкладу. Перевірте формат файлу.');
-                return;
-            }
-            
-            // Зберігаємо розклад
-            schoolData.schedules[selectedClassForUpload] = schedule;
-            saveSchoolData();
-            
-            alert('✅ Розклад успішно збережено для класу!');
-            
-            // Ховаємо кнопку збереження
-            document.getElementById('saveScheduleBtn').style.display = 'none';
-            
-            // Оновлюємо вибір класу для перегляду
-            document.getElementById('scheduleClass').value = selectedClassForUpload;
-            
-            // Завантажуємо збережений розклад
-            loadSchedule();
-            
-            // Оновлюємо розклад у вкладці класу, якщо він відкритий
-            if (currentClassId === selectedClassForUpload) {
-                loadClassSchedule(currentClassId);
-            }
-            
-            // Очищаємо дані
-            uploadedScheduleData = null;
-            selectedClassForUpload = null;
-            
-            // Оновлюємо вибір класу
-            document.getElementById('selectedClassForSchedule').value = '';
-        }
-
-        function importScheduleFromExcel(classId, data) {
-            if (!schoolData.schedules[classId]) {
-                schoolData.schedules[classId] = {
-                    'Понеділок': [], 'Вівторок': [], 'Середа': [], 'Четвер': [], 'П\'ятниця': []
-                };
-            }
-            
-            const schedule = schoolData.schedules[classId];
-            const days = ['Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
-            
-            // Очищаємо старий розклад
-            Object.keys(schedule).forEach(day => {
-                schedule[day] = [];
-            });
-            
-            // Обробляємо дані (пропускаємо заголовок)
-            for (let i = 1; i < data.length && i <= 7; i++) {
-                const row = data[i];
-                if (!row || row.length < 6) continue;
-                
-                const lesson = parseInt(row[0]);
-                if (isNaN(lesson)) continue;
-                
-                for (let j = 1; j <= 5; j++) {
-                    const day = days[j-1];
-                    const cellValue = row[j] || '';
-                    
-                    if (cellValue && typeof cellValue === 'string') {
-                        // Розбираємо значення комірки
-                        const parts = cellValue.split(',').map(part => part.trim());
-                        const subject = parts[0] || '';
-                        const teacher = parts[1] || '';
-                        const classroom = parts[2] || '';
-                        
-                        if (subject) {
-                            schedule[day].push({
-                                lesson: lesson,
-                                subject: subject,
-                                teacher: teacher,
-                                classroom: classroom
-                            });
-                        }
-                    }
-                }
-            }
-            
-            // Сортуємо уроки в кожен день
-            Object.keys(schedule).forEach(day => {
-                schedule[day].sort((a, b) => a.lesson - b.lesson);
-            });
-            
-            saveSchoolData();
-        }
-
         function downloadTemplate() {
             // Створюємо дані для шаблону
             const data = [];
@@ -1912,7 +1973,7 @@
             
             if (!schedule) {
                 display.innerHTML = `
-                    <h4>Розклад для ${classItem.name}</h4>
+                    <h4>Розклад для ${classItem ? classItem.name : 'класу'}</h4>
                     <p>Розклад ще не створено. Завантажте файл розкладу.</p>
                 `;
                 return;
@@ -1998,7 +2059,8 @@
                 
                 const files = e.dataTransfer.files;
                 if (files.length > 0) {
-                    handleFileUpload(files[0]);
+                    const event = { target: { files: files } };
+                    handleFileUpload(event);
                 }
             });
         });
