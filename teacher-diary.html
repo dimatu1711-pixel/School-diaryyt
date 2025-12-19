@@ -1,0 +1,2249 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Нова Щоденник - Електронний журнал</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #8B5FBF;
+            --primary-dark: #6A3093;
+            --primary-light: #A569BD;
+            --secondary: #58D68D;
+            --secondary-dark: #28B463;
+            --accent: #F39C12;
+            --light: #F4ECF7;
+            --lighter: #F9F5FD;
+            --dark: #4A235A;
+            --gray: #95a5a6;
+            --gray-light: #ecf0f1;
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --border-radius: 8px;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            border-radius: var(--border-radius);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+        
+        .logo-text h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .logo-text p {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--light);
+            padding: 10px 20px;
+            border-radius: 50px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .user-role {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, var(--danger), #c0392b);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        /* Screens */
+        .screen {
+            display: none;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Class Selection Screen */
+        .screen-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .screen-header h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .screen-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .classes-container {
+            padding: 40px;
+        }
+        
+        .class-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .class-card {
+            background: linear-gradient(135deg, #ffffff, var(--lighter));
+            border-radius: var(--border-radius);
+            padding: 30px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 3px solid transparent;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .class-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary);
+        }
+        
+        .class-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        
+        .class-card h3 {
+            font-size: 24px;
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .class-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .class-info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--dark);
+        }
+        
+        .class-info-item i {
+            color: var(--primary);
+            width: 20px;
+        }
+        
+        .class-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--gray-light);
+        }
+        
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        /* Journal Screen */
+        .journal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 30px;
+            background: var(--lighter);
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .class-nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .back-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .back-btn:hover {
+            transform: translateX(-5px);
+            box-shadow: 0 5px 15px rgba(139, 95, 191, 0.3);
+        }
+        
+        .current-class-info {
+            background: white;
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .current-class-info h3 {
+            font-size: 22px;
+            color: var(--primary-dark);
+            margin-bottom: 5px;
+        }
+        
+        .current-class-info p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .month-navigation {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .month-btn {
+            background: white;
+            border: 2px solid var(--gray-light);
+            color: var(--dark);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 18px;
+        }
+        
+        .month-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+        
+        .current-month {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 18px;
+            min-width: 180px;
+            text-align: center;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: var(--lighter);
+            padding: 0 30px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .tab {
+            padding: 20px 30px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--gray);
+            border-bottom: 3px solid transparent;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .tab:hover {
+            color: var(--primary);
+        }
+        
+        .tab.active {
+            color: var(--primary-dark);
+            border-bottom-color: var(--primary);
+            background: white;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Journal Table */
+        .journal-table-container {
+            padding: 30px;
+            overflow-x: auto;
+        }
+        
+        .journal-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 1px;
+            min-width: 800px;
+        }
+        
+        .journal-table thead th {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 5px;
+            text-align: center;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            min-width: 60px;
+            border: 1px solid white;
+        }
+        
+        .journal-table thead th:first-child {
+            border-radius: 8px 0 0 0;
+        }
+        
+        .journal-table thead th:last-child {
+            border-radius: 0 8px 0 0;
+        }
+        
+        .journal-table tbody td {
+            padding: 12px 5px;
+            text-align: center;
+            background: white;
+            border: 1px solid var(--gray-light);
+            min-width: 60px;
+            height: 60px;
+            vertical-align: middle;
+        }
+        
+        .journal-table tbody tr:hover td {
+            background: var(--lighter);
+        }
+        
+        .student-cell {
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            position: sticky;
+            left: 0;
+            background: white;
+            min-width: 200px;
+            z-index: 5;
+            padding-left: 15px !important;
+            border: 1px solid var(--gray-light);
+        }
+        
+        .journal-table tbody tr:hover .student-cell {
+            background: var(--lighter);
+        }
+        
+        .grade-cell {
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            position: relative;
+        }
+        
+        .grade-cell:hover {
+            background: var(--light) !important;
+            transform: scale(1.05);
+            box-shadow: 0 0 0 2px var(--primary-light);
+            z-index: 2;
+        }
+        
+        .grade-cell.empty {
+            color: var(--gray);
+            font-style: italic;
+        }
+        
+        .add-lesson-cell {
+            background: var(--lighter) !important;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--primary);
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .add-lesson-cell:hover {
+            background: var(--light) !important;
+            color: var(--primary-dark);
+        }
+        
+        .attendance-marker {
+            font-size: 10px;
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            color: var(--danger);
+        }
+        
+        .attendance-present {
+            color: var(--success);
+        }
+        
+        .attendance-late {
+            color: var(--accent);
+        }
+        
+        /* Lesson Controls */
+        .lesson-controls {
+            padding: 20px 30px;
+            background: var(--lighter);
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        
+        .save-journal-btn {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .save-journal-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(139, 95, 191, 0.3);
+        }
+        
+        /* KTP Tab */
+        .ktp-container {
+            padding: 30px;
+        }
+        
+        .ktp-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 2px dashed var(--gray-light);
+            transition: var(--transition);
+        }
+        
+        .ktp-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-5px);
+        }
+        
+        .word-icon {
+            font-size: 60px;
+            color: #2b579a;
+            margin-bottom: 20px;
+        }
+        
+        .ktp-upload {
+            margin-top: 30px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .file-label {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 30px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .file-label:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(139, 95, 191, 0.3);
+        }
+        
+        .ktp-info {
+            margin-top: 20px;
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .ktp-topics {
+            margin-top: 30px;
+            background: var(--lighter);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .ktp-topics h4 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+        }
+        
+        .topics-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .topic-item {
+            padding: 10px 15px;
+            background: white;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .topic-number {
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        /* Schedule Tab */
+        .schedule-container {
+            padding: 30px;
+        }
+        
+        .schedule-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .schedule-form {
+            margin-top: 30px;
+        }
+        
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 1px;
+            background: var(--gray-light);
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .schedule-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .schedule-cell {
+            background: white;
+            padding: 15px 10px;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .schedule-cell.empty {
+            background: var(--lighter);
+        }
+        
+        .schedule-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .schedule-action-btn {
+            padding: 15px 25px;
+            background: var(--lighter);
+            border: 2px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .schedule-action-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-5px);
+        }
+        
+        .schedule-action-btn i {
+            font-size: 20px;
+        }
+        
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow);
+            animation: modalSlideIn 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 25px 30px;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+        
+        .modal-header h3 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(139, 95, 191, 0.1);
+        }
+        
+        .form-control:disabled {
+            background: var(--lighter);
+            cursor: not-allowed;
+        }
+        
+        .date-range {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .date-range input {
+            flex: 1;
+        }
+        
+        .lesson-type-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .lesson-type-btn {
+            padding: 12px 10px;
+            background: var(--lighter);
+            border: 2px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .lesson-type-btn:hover {
+            border-color: var(--primary);
+        }
+        
+        .lesson-type-btn.selected {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .add-custom-type {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .add-custom-type input {
+            flex: 1;
+        }
+        
+        .add-custom-type-btn {
+            background: var(--gray-light);
+            border: none;
+            padding: 0 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .grade-options {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .grade-btn {
+            padding: 12px 5px;
+            background: var(--lighter);
+            border: 2px solid var(--gray-light);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .grade-btn:hover {
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+        
+        .grade-btn.selected {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .special-grades {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .attendance-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-cancel {
+            background: var(--gray-light);
+            color: var(--dark);
+        }
+        
+        .btn-cancel:hover {
+            background: var(--gray);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-save {
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+            color: white;
+        }
+        
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(88, 214, 141, 0.3);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .user-menu {
+                flex-direction: column;
+            }
+            
+            .class-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .journal-header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            
+            .class-nav {
+                flex-direction: column;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .grade-options {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .schedule-grid {
+                grid-template-columns: repeat(3, 1fr);
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>Нова Щоденник</h1>
+                        <p>Електронний журнал оцінок</p>
+                    </div>
+                </div>
+                <div class="user-menu">
+                    <div class="user-info">
+                        <div class="user-avatar">ВЧ</div>
+                        <div>
+                            <div class="user-name">Іваненко Іван Іванович</div>
+                            <div class="user-role">Вчитель математики</div>
+                        </div>
+                    </div>
+                    <button class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Вийти
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Class Selection Screen -->
+        <div id="classSelectionScreen" class="screen active">
+            <div class="screen-header">
+                <h2>Оберіть клас для роботи</h2>
+                <p>Виберіть клас, з яким ви хочете працювати</p>
+            </div>
+            <div class="classes-container">
+                <div class="class-grid" id="classGrid">
+                    <!-- Classes will be added by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Journal Screen -->
+        <div id="journalScreen" class="screen">
+            <div class="journal-header">
+                <div class="class-nav">
+                    <button class="back-btn" id="backToClasses">
+                        <i class="fas fa-arrow-left"></i> До вибору класу
+                    </button>
+                    <div class="current-class-info">
+                        <h3 id="currentClassName">5-А клас</h3>
+                        <p id="currentClassSubject">Математика</p>
+                    </div>
+                </div>
+                <div class="month-navigation">
+                    <button class="month-btn" id="prevMonth">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="current-month" id="currentMonth">Листопад 2025</div>
+                    <button class="month-btn" id="nextMonth">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab active" data-tab="journal">
+                    <i class="fas fa-book"></i> Журнал оцінок
+                </div>
+                <div class="tab" data-tab="ktp">
+                    <i class="fas fa-calendar-alt"></i> Календарно-тематичне планування
+                </div>
+                <div class="tab" data-tab="schedule">
+                    <i class="fas fa-clock"></i> Мій розклад
+                </div>
+            </div>
+
+            <!-- Journal Tab -->
+            <div class="tab-content active" id="journalTab">
+                <div class="journal-table-container">
+                    <table class="journal-table" id="gradesTable">
+                        <!-- Table will be generated by JavaScript -->
+                    </table>
+                </div>
+                <div class="lesson-controls">
+                    <button class="save-journal-btn" id="saveJournalBtn">
+                        <i class="fas fa-save"></i> Зберегти журнал
+                    </button>
+                </div>
+            </div>
+
+            <!-- KTP Tab -->
+            <div class="tab-content" id="ktpTab">
+                <div class="ktp-container">
+                    <div class="ktp-card">
+                        <div class="word-icon">
+                            <i class="fab fa-microsoft"></i>
+                        </div>
+                        <h3>Календарно-тематичне планування</h3>
+                        <p>Завантажте ваш файл КТП у форматі Word для автоматичного завантаження тем уроків</p>
+                        
+                        <div class="ktp-upload">
+                            <input type="file" id="ktpFile" class="file-input" accept=".doc,.docx">
+                            <label for="ktpFile" class="file-label">
+                                <i class="fas fa-upload"></i> Завантажити КТП
+                            </label>
+                            <div class="ktp-info">
+                                <p><strong>Формат файлу:</strong> Microsoft Word (.doc, .docx)</p>
+                                <p><strong>Система автоматично витягне всі теми з вашого КТП</strong></p>
+                            </div>
+                        </div>
+                        
+                        <div class="ktp-topics" id="ktpTopicsContainer" style="display: none;">
+                            <h4>Знайдені теми в КТП:</h4>
+                            <div class="topics-list" id="topicsList">
+                                <!-- Topics will be added by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule Tab -->
+            <div class="tab-content" id="scheduleTab">
+                <div class="schedule-container">
+                    <div class="schedule-card">
+                        <h3>Мій розклад</h3>
+                        <p>Створіть та збережіть ваш розклад уроків</p>
+                        
+                        <div class="schedule-form">
+                            <div class="form-group">
+                                <label class="form-label">Оберіть клас для розкладу:</label>
+                                <select id="scheduleClass" class="form-control">
+                                    <option value="">Оберіть клас</option>
+                                    <option value="5-А">5-А клас</option>
+                                    <option value="5-Б">5-Б клас</option>
+                                    <option value="6-А">6-А клас</option>
+                                </select>
+                            </div>
+                            
+                            <div class="schedule-grid" id="scheduleGrid">
+                                <!-- Schedule will be generated by JavaScript -->
+                            </div>
+                            
+                            <div class="schedule-actions">
+                                <button class="schedule-action-btn" id="createScheduleBtn">
+                                    <i class="fas fa-plus"></i> Створити розклад
+                                </button>
+                                <button class="schedule-action-btn" id="saveScheduleBtn">
+                                    <i class="fas fa-save"></i> Зберегти розклад
+                                </button>
+                                <button class="schedule-action-btn" id="downloadScheduleBtn">
+                                    <i class="fas fa-download"></i> Завантажити
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Lesson Modal -->
+    <div class="modal" id="addLessonModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus"></i> Додати новий урок</h3>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Дата уроку:</label>
+                    <div class="date-range">
+                        <input type="date" id="lessonDate" class="form-control" 
+                               min="2025-11-30" max="2026-12-31">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Тема уроку:</label>
+                    <select id="lessonTopic" class="form-control" disabled>
+                        <option value="">Завантажте КТП для вибору тем</option>
+                    </select>
+                    <small style="color: var(--gray); margin-top: 5px; display: block;">
+                        Для вибору теми завантажте КТП у відповідній вкладці
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Тип уроку:</label>
+                    <div class="lesson-type-options" id="lessonTypeOptions">
+                        <!-- Lesson types will be added by JavaScript -->
+                    </div>
+                    <div class="add-custom-type">
+                        <input type="text" id="customLessonType" class="form-control" placeholder="Введіть свій тип уроку">
+                        <button class="add-custom-type-btn" id="addCustomTypeBtn">+</button>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-cancel" id="cancelLessonBtn">
+                        <i class="fas fa-times"></i> Скасувати
+                    </button>
+                    <button class="btn btn-save" id="saveLessonBtn">
+                        <i class="fas fa-check"></i> Зберегти урок
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grade Modal -->
+    <div class="modal" id="gradeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-star"></i> Поставити оцінку</h3>
+            </div>
+            <div class="modal-body">
+                <div class="student-info" id="studentInfo">
+                    <!-- Student info will be added by JavaScript -->
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Оцінка:</label>
+                    <div class="special-grades">
+                        <button class="grade-btn" data-grade="Н/А">Н/А (Не атестовано)</button>
+                        <button class="grade-btn" data-grade="Н/О">Н/О (Не з'явився)</button>
+                        <button class="grade-btn" data-grade="зв">зв (Звільнений)</button>
+                        <button class="grade-btn" data-grade="В">В (Відмінно)</button>
+                        <button class="grade-btn" data-grade="зар">зар (Зараховано)</button>
+                        <button class="grade-btn" data-grade="вивч. заув">вивч. заув</button>
+                        <button class="grade-btn" data-grade="Н/з">Н/з (Не здав)</button>
+                    </div>
+                    <div class="grade-options" id="gradeOptions">
+                        <!-- Grade buttons will be added by JavaScript -->
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Відвідування:</label>
+                    <div class="attendance-buttons">
+                        <button class="grade-btn" data-attendance="present">Присутній</button>
+                        <button class="grade-btn" data-attendance="absent">Відсутній</button>
+                        <button class="grade-btn" data-attendance="late">Запізнився</button>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-cancel" id="cancelGradeBtn">
+                        <i class="fas fa-times"></i> Скасувати
+                    </button>
+                    <button class="btn btn-save" id="saveGradeBtn">
+                        <i class="fas fa-check"></i> Зберегти оцінку
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initial Data
+        const appData = {
+            classes: [
+                {
+                    id: 1,
+                    name: "5-А",
+                    teacher: "Іваненко І.І.",
+                    subject: "Математика",
+                    students: 25,
+                    lessons: 15,
+                    studentsList: [
+                        "Животний силух",
+                        "Андрей Бандар",
+                        "Андрей Щербань",
+                        "Гончарук Саша",
+                        "Іван Кухтин",
+                        "Кравченко Влад",
+                        "Максим Пнаток",
+                        "Марина Кервась",
+                        "Микола Егів",
+                        "Назар Доровський",
+                        "Сабко Тимур"
+                    ]
+                },
+                {
+                    id: 2,
+                    name: "5-Б",
+                    teacher: "Петренко П.П.",
+                    subject: "Математика",
+                    students: 24,
+                    lessons: 12,
+                    studentsList: [
+                        "Учень 1 5-Б",
+                        "Учень 2 5-Б",
+                        "Учень 3 5-Б",
+                        "Учень 4 5-Б",
+                        "Учень 5 5-Б"
+                    ]
+                },
+                {
+                    id: 3,
+                    name: "6-А",
+                    teacher: "Сидоренко С.С.",
+                    subject: "Математика",
+                    students: 26,
+                    lessons: 18,
+                    studentsList: [
+                        "Учень 1 6-А",
+                        "Учень 2 6-А",
+                        "Учень 3 6-А",
+                        "Учень 4 6-А",
+                        "Учень 5 6-А"
+                    ]
+                }
+            ],
+            months: [
+                "Січень", "Лютий", "Березень", "Квітень",
+                "Травень", "Червень", "Липень", "Серпень",
+                "Вересень", "Жовтень", "Листопад", "Грудень"
+            ],
+            defaultLessonTypes: [
+                { value: "Лекція", desc: "Викладання нового матеріалу" },
+                { value: "Практична", desc: "Практичні вправи та задачі" },
+                { value: "Лабораторна", desc: "Лабораторна робота" },
+                { value: "Контрольна", desc: "Контрольна робота" },
+                { value: "Тестування", desc: "Тестові завдання" },
+                { value: "Семінар", desc: "Обговорення тем" }
+            ]
+        };
+
+        // App State
+        const state = {
+            currentClass: null,
+            currentMonth: new Date().getMonth(),
+            currentYear: new Date().getFullYear(),
+            currentTab: 'journal',
+            lessons: [],
+            grades: {},
+            ktpTopics: [],
+            currentEditCell: null,
+            customLessonTypes: [],
+            schedule: {}
+        };
+
+        // DOM Elements
+        const classSelectionScreen = document.getElementById('classSelectionScreen');
+        const journalScreen = document.getElementById('journalScreen');
+        const classGrid = document.getElementById('classGrid');
+        const backToClassesBtn = document.getElementById('backToClasses');
+        const currentClassName = document.getElementById('currentClassName');
+        const currentClassSubject = document.getElementById('currentClassSubject');
+        const currentMonth = document.getElementById('currentMonth');
+        const prevMonthBtn = document.getElementById('prevMonth');
+        const nextMonthBtn = document.getElementById('nextMonth');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const gradesTable = document.getElementById('gradesTable');
+        const saveJournalBtn = document.getElementById('saveJournalBtn');
+        const addLessonModal = document.getElementById('addLessonModal');
+        const gradeModal = document.getElementById('gradeModal');
+        const lessonDateInput = document.getElementById('lessonDate');
+        const lessonTopicSelect = document.getElementById('lessonTopic');
+        const lessonTypeOptions = document.getElementById('lessonTypeOptions');
+        const customLessonTypeInput = document.getElementById('customLessonType');
+        const addCustomTypeBtn = document.getElementById('addCustomTypeBtn');
+        const cancelLessonBtn = document.getElementById('cancelLessonBtn');
+        const saveLessonBtn = document.getElementById('saveLessonBtn');
+        const cancelGradeBtn = document.getElementById('cancelGradeBtn');
+        const saveGradeBtn = document.getElementById('saveGradeBtn');
+        const gradeOptions = document.getElementById('gradeOptions');
+        const studentInfo = document.getElementById('studentInfo');
+        const ktpFileInput = document.getElementById('ktpFile');
+        const ktpTopicsContainer = document.getElementById('ktpTopicsContainer');
+        const topicsList = document.getElementById('topicsList');
+        const scheduleClassSelect = document.getElementById('scheduleClass');
+        const scheduleGrid = document.getElementById('scheduleGrid');
+        const createScheduleBtn = document.getElementById('createScheduleBtn');
+        const saveScheduleBtn = document.getElementById('saveScheduleBtn');
+        const downloadScheduleBtn = document.getElementById('downloadScheduleBtn');
+
+        // Initialize App
+        function initApp() {
+            renderClasses();
+            setupEventListeners();
+            loadFromLocalStorage();
+            
+            // Set date range for lesson date picker
+            const today = new Date();
+            const endOf2026 = new Date(2026, 11, 31);
+            lessonDateInput.min = today.toISOString().split('T')[0];
+            lessonDateInput.max = endOf2026.toISOString().split('T')[0];
+            lessonDateInput.value = today.toISOString().split('T')[0];
+            
+            // Initialize lesson types
+            renderLessonTypes();
+            
+            // Initialize grade buttons
+            renderGradeButtons();
+            
+            // Initialize schedule
+            renderScheduleGrid();
+            
+            // Check if KTP is already loaded
+            updateKTPTopicsDisplay();
+        }
+
+        // Render Classes
+        function renderClasses() {
+            classGrid.innerHTML = '';
+            appData.classes.forEach(cls => {
+                const classCard = document.createElement('div');
+                classCard.className = 'class-card';
+                classCard.innerHTML = `
+                    <h3>${cls.name}</h3>
+                    <div class="class-info">
+                        <div class="class-info-item">
+                            <i class="fas fa-book"></i>
+                            <span>Предмет: ${cls.subject}</span>
+                        </div>
+                        <div class="class-info-item">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <span>Вчитель: ${cls.teacher}</span>
+                        </div>
+                        <div class="class-info-item">
+                            <i class="fas fa-users"></i>
+                            <span>Кількість учнів: ${cls.students}</span>
+                        </div>
+                    </div>
+                    <div class="class-stats">
+                        <div class="stat">
+                            <div class="stat-value">${cls.students}</div>
+                            <div class="stat-label">учнів</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${cls.lessons}</div>
+                            <div class="stat-label">уроків</div>
+                        </div>
+                    </div>
+                `;
+                classCard.addEventListener('click', () => selectClass(cls));
+                classGrid.appendChild(classCard);
+            });
+        }
+
+        // Select Class
+        function selectClass(cls) {
+            state.currentClass = cls;
+            currentClassName.textContent = `${cls.name} клас`;
+            currentClassSubject.textContent = cls.subject;
+            
+            classSelectionScreen.classList.remove('active');
+            journalScreen.classList.add('active');
+            
+            updateMonthDisplay();
+            loadClassData();
+        }
+
+        // Update Month Display
+        function updateMonthDisplay() {
+            currentMonth.textContent = `${appData.months[state.currentMonth]} ${state.currentYear}`;
+        }
+
+        // Load Class Data
+        function loadClassData() {
+            const storageKey = `class_${state.currentClass.id}_${state.currentYear}_${state.currentMonth}`;
+            const savedData = localStorage.getItem(storageKey);
+            
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                state.lessons = data.lessons || [];
+                state.grades = data.grades || {};
+            } else {
+                generateSampleData();
+            }
+            
+            renderJournalTable();
+        }
+
+        // Generate Sample Data
+        function generateSampleData() {
+            state.lessons = [];
+            state.grades = {};
+            
+            const daysInMonth = new Date(state.currentYear, state.currentMonth + 1, 0).getDate();
+            let lessonCount = 0;
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(state.currentYear, state.currentMonth, day);
+                if (date.getDay() !== 0 && date.getDay() !== 6 && lessonCount < 15) {
+                    lessonCount++;
+                    state.lessons.push({
+                        id: Date.now() + day,
+                        date: `${day.toString().padStart(2, '0')}.${(state.currentMonth + 1).toString().padStart(2, '0')}.${state.currentYear}`,
+                        type: '+',
+                        topic: state.ktpTopics.length > 0 ? 'Оберіть тему з КТП' : 'Завантажте КТП'
+                    });
+                }
+            }
+            
+            // Initialize empty grades
+            state.currentClass.studentsList.forEach(student => {
+                state.grades[student] = {};
+                state.lessons.forEach(lesson => {
+                    state.grades[student][lesson.id] = {
+                        grade: '',
+                        attendance: 'present'
+                    };
+                });
+            });
+            
+            saveToLocalStorage();
+        }
+
+        // Render Journal Table
+        function renderJournalTable() {
+            gradesTable.innerHTML = '';
+            
+            // Create header
+            let headerHTML = '<thead><tr><th>№</th><th class="student-cell">Учень</th>';
+            state.lessons.forEach(lesson => {
+                headerHTML += `<th>${lesson.date}</th>`;
+            });
+            // Add empty column for adding new lessons
+            headerHTML += '<th class="add-lesson-cell" id="addLessonColumn">+</th>';
+            headerHTML += '</tr></thead>';
+            
+            // Create body
+            let bodyHTML = '<tbody>';
+            state.currentClass.studentsList.forEach((student, index) => {
+                bodyHTML += `<tr><td>${index + 1}</td><td class="student-cell">${student}</td>`;
+                
+                state.lessons.forEach(lesson => {
+                    const gradeData = state.grades[student]?.[lesson.id] || { grade: '', attendance: 'present' };
+                    let gradeDisplay = gradeData.grade || '';
+                    let attendanceClass = '';
+                    
+                    if (gradeData.attendance === 'absent') {
+                        gradeDisplay += ' <span class="attendance-marker">н</span>';
+                    } else if (gradeData.attendance === 'late') {
+                        gradeDisplay += ' <span class="attendance-marker attendance-late">з</span>';
+                    }
+                    
+                    // If no grade and lesson type is +, show +
+                    if (!gradeDisplay && lesson.type === '+') {
+                        gradeDisplay = '+';
+                    }
+                    
+                    bodyHTML += `
+                        <td class="grade-cell ${!gradeData.grade ? 'empty' : ''}" 
+                            data-student="${student}" 
+                            data-lesson="${lesson.id}">
+                            ${gradeDisplay}
+                        </td>`;
+                });
+                
+                // Empty cell for adding lessons
+                bodyHTML += `<td class="add-lesson-cell"></td>`;
+                bodyHTML += '</tr>';
+            });
+            bodyHTML += '</tbody>';
+            
+            gradesTable.innerHTML = headerHTML + bodyHTML;
+            
+            // Add click handlers to grade cells
+            document.querySelectorAll('.grade-cell').forEach(cell => {
+                cell.addEventListener('click', function() {
+                    const student = this.dataset.student;
+                    const lessonId = parseInt(this.dataset.lesson);
+                    const lesson = state.lessons.find(l => l.id === lessonId);
+                    
+                    if (lesson) {
+                        if (lesson.type === '+' || this.textContent.includes('+')) {
+                            openAddLessonModal(student, lesson);
+                        } else {
+                            openGradeModal(student, lesson);
+                        }
+                    }
+                });
+            });
+            
+            // Add click handler for adding lessons column
+            document.getElementById('addLessonColumn').addEventListener('click', () => {
+                openAddLessonModal();
+            });
+        }
+
+        // Render Lesson Types
+        function renderLessonTypes() {
+            lessonTypeOptions.innerHTML = '';
+            
+            // Add default lesson types
+            appData.defaultLessonTypes.forEach(type => {
+                const btn = document.createElement('button');
+                btn.className = 'lesson-type-btn';
+                btn.type = 'button';
+                btn.textContent = type.value;
+                btn.title = type.desc;
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.lesson-type-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                });
+                lessonTypeOptions.appendChild(btn);
+            });
+            
+            // Add custom lesson types
+            state.customLessonTypes.forEach(type => {
+                const btn = document.createElement('button');
+                btn.className = 'lesson-type-btn';
+                btn.type = 'button';
+                btn.textContent = type;
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.lesson-type-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                });
+                lessonTypeOptions.appendChild(btn);
+            });
+        }
+
+        // Render Grade Buttons
+        function renderGradeButtons() {
+            gradeOptions.innerHTML = '';
+            for (let i = 1; i <= 12; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'grade-btn';
+                btn.dataset.grade = i;
+                btn.textContent = i;
+                gradeOptions.appendChild(btn);
+            }
+        }
+
+        // Render Schedule Grid
+        function renderScheduleGrid() {
+            scheduleGrid.innerHTML = '';
+            
+            // Add headers
+            const days = ['', 'Понеділок', 'Вівторок', 'Середа', 'Четвер', 'П\'ятниця'];
+            const lessons = ['', '1 урок', '2 урок', '3 урок', '4 урок', '5 урок', '6 урок', '7 урок'];
+            
+            // Create grid headers
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 6; j++) {
+                    const cell = document.createElement('div');
+                    
+                    if (i === 0 && j === 0) {
+                        cell.className = 'schedule-header';
+                        cell.textContent = 'Розклад';
+                    } else if (i === 0) {
+                        cell.className = 'schedule-header';
+                        cell.textContent = days[j];
+                    } else if (j === 0) {
+                        cell.className = 'schedule-header';
+                        cell.textContent = lessons[i];
+                    } else {
+                        cell.className = 'schedule-cell empty';
+                        cell.textContent = '---';
+                        cell.dataset.day = j;
+                        cell.dataset.lesson = i;
+                        cell.addEventListener('click', () => editScheduleCell(cell));
+                    }
+                    
+                    scheduleGrid.appendChild(cell);
+                }
+            }
+        }
+
+        // Update KTP Topics Display
+        function updateKTPTopicsDisplay() {
+            if (state.ktpTopics.length > 0) {
+                ktpTopicsContainer.style.display = 'block';
+                topicsList.innerHTML = '';
+                
+                state.ktpTopics.forEach((topic, index) => {
+                    const topicItem = document.createElement('div');
+                    topicItem.className = 'topic-item';
+                    topicItem.innerHTML = `
+                        <div class="topic-number">${index + 1}</div>
+                        <div style="flex: 1; margin: 0 15px;">${topic}</div>
+                    `;
+                    topicsList.appendChild(topicItem);
+                });
+            } else {
+                ktpTopicsContainer.style.display = 'none';
+            }
+        }
+
+        // Process KTP File
+        function processKTPFile(file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const arrayBuffer = e.target.result;
+                
+                // Use Mammoth to extract text from .docx
+                mammoth.extractRawText({arrayBuffer: arrayBuffer})
+                    .then(function(result) {
+                        const text = result.value;
+                        const topics = extractTopicsFromText(text);
+                        
+                        if (topics.length > 0) {
+                            state.ktpTopics = topics;
+                            updateKTPTopicsDisplay();
+                            updateLessonTopicSelect();
+                            saveKTPToStorage();
+                            showNotification(`Знайдено ${topics.length} тем у КТП!`, 'success');
+                        } else {
+                            // If no topics found, try to extract by patterns
+                            const fallbackTopics = extractTopicsByPatterns(text);
+                            if (fallbackTopics.length > 0) {
+                                state.ktpTopics = fallbackTopics;
+                                updateKTPTopicsDisplay();
+                                updateLessonTopicSelect();
+                                saveKTPToStorage();
+                                showNotification(`Знайдено ${fallbackTopics.length} тем у КТП!`, 'success');
+                            } else {
+                                showNotification('Не вдалося знайти теми в КТП. Спробуйте інший файл.', 'error');
+                            }
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error('Error processing KTP:', err);
+                        showNotification('Помилка обробки файлу КТП', 'error');
+                    });
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Extract topics from text
+        function extractTopicsFromText(text) {
+            const lines = text.split('\n').filter(line => line.trim());
+            const topics = [];
+            
+            // Patterns to identify topics
+            const topicPatterns = [
+                /^Тема\s+\d+[.:]\s*(.+)$/i,
+                /^\d+[.\s]\s*(.+)$/i,
+                /^[IVXLCDM]+[.:]\s*(.+)$/i,
+                /^[А-ЯІЇЄҐ]{2,}.+$/u
+            ];
+            
+            // Look for topic markers
+            for (let line of lines) {
+                line = line.trim();
+                
+                // Skip empty lines and common non-topic lines
+                if (!line || 
+                    line.length < 10 || 
+                    /^(?:зміст|вступ|від автора|література|список літератури|додатки|примітки)/i.test(line) ||
+                    /^\d+\s*сторінк/i.test(line) ||
+                    line.includes('©') ||
+                    line.length > 200) {
+                    continue;
+                }
+                
+                // Check if line matches topic patterns
+                for (const pattern of topicPatterns) {
+                    const match = line.match(pattern);
+                    if (match) {
+                        const topic = match[1] || line;
+                        if (topic.length > 5 && topic.length < 150) {
+                            topics.push(topic.trim());
+                            break;
+                        }
+                    }
+                }
+                
+                // If we have too many lines, stop (max 50 topics)
+                if (topics.length >= 50) break;
+            }
+            
+            // If no topics found with patterns, try to find numbered items
+            if (topics.length === 0) {
+                const numberedLines = lines.filter(line => /^\d+[.)]\s+.+/.test(line));
+                numberedLines.forEach(line => {
+                    const topic = line.replace(/^\d+[.)]\s+/, '').trim();
+                    if (topic.length > 5 && topic.length < 150) {
+                        topics.push(topic);
+                    }
+                });
+            }
+            
+            return topics.slice(0, 30); // Limit to 30 topics
+        }
+
+        // Extract topics by patterns (fallback method)
+        function extractTopicsByPatterns(text) {
+            const topics = [];
+            const lines = text.split('\n');
+            
+            // Common Ukrainian topic patterns
+            const ukrainianPatterns = [
+                /вивчення/i,
+                /ознайомлення/i,
+                /формування/i,
+                /розвиток/i,
+                /систематизація/i,
+                /закріплення/i,
+                /повторення/i,
+                /контроль/i,
+                /практикум/i,
+                /лабораторна/i,
+                /самостійна/i
+            ];
+            
+            for (let line of lines) {
+                line = line.trim();
+                
+                // Check if line looks like a topic
+                if (line.length > 20 && line.length < 150) {
+                    // Check for Ukrainian patterns
+                    const hasPattern = ukrainianPatterns.some(pattern => pattern.test(line));
+                    const hasAcademicWords = /(урок|тема|заняття|розділ|модуль)/i.test(line);
+                    
+                    if (hasPattern || hasAcademicWords) {
+                        // Clean up the line
+                        let cleanTopic = line
+                            .replace(/^[0-9IVXLCDM.]+[)\s]*/, '') // Remove numbering
+                            .replace(/\s+/g, ' ') // Normalize spaces
+                            .trim();
+                        
+                        if (cleanTopic.length > 10) {
+                            topics.push(cleanTopic);
+                        }
+                    }
+                }
+                
+                if (topics.length >= 20) break;
+            }
+            
+            return topics.slice(0, 20);
+        }
+
+        // Update Lesson Topic Select
+        function updateLessonTopicSelect() {
+            lessonTopicSelect.innerHTML = '<option value="">Оберіть тему з КТП</option>';
+            
+            if (state.ktpTopics.length > 0) {
+                state.ktpTopics.forEach((topic, index) => {
+                    const option = document.createElement('option');
+                    option.value = topic;
+                    option.textContent = `${index + 1}. ${topic}`;
+                    lessonTopicSelect.appendChild(option);
+                });
+                lessonTopicSelect.disabled = false;
+            } else {
+                lessonTopicSelect.disabled = true;
+            }
+        }
+
+        // Save KTP to Storage
+        function saveKTPToStorage() {
+            localStorage.setItem('ktpTopics', JSON.stringify(state.ktpTopics));
+        }
+
+        // Load KTP from Storage
+        function loadKTPFromStorage() {
+            const savedTopics = localStorage.getItem('ktpTopics');
+            if (savedTopics) {
+                state.ktpTopics = JSON.parse(savedTopics);
+                updateKTPTopicsDisplay();
+                updateLessonTopicSelect();
+            }
+        }
+
+        // Open Grade Modal
+        function openGradeModal(student, lesson) {
+            const gradeData = state.grades[student]?.[lesson.id] || { grade: '', attendance: 'present' };
+            
+            // Set student info
+            studentInfo.innerHTML = `
+                <p><strong>Предмет:</strong> ${state.currentClass.subject}</p>
+                <p><strong>Учень:</strong> ${student}</p>
+                <p><strong>Урок:</strong> ${lesson.date}, ${lesson.type}</p>
+                ${lesson.topic ? `<p><strong>Тема:</strong> ${lesson.topic}</p>` : ''}
+            `;
+            
+            // Clear previous selections
+            document.querySelectorAll('.grade-btn').forEach(btn => btn.classList.remove('selected'));
+            
+            // Select current grade if exists
+            if (gradeData.grade) {
+                const gradeBtn = document.querySelector(`.grade-btn[data-grade="${gradeData.grade}"]`);
+                if (gradeBtn) gradeBtn.classList.add('selected');
+            }
+            
+            // Select current attendance
+            const attendanceBtn = document.querySelector(`.grade-btn[data-attendance="${gradeData.attendance}"]`);
+            if (attendanceBtn) attendanceBtn.classList.add('selected');
+            
+            state.currentEditCell = { student, lessonId: lesson.id };
+            gradeModal.classList.add('active');
+        }
+
+        // Open Add Lesson Modal
+        function openAddLessonModal(student = null, existingLesson = null) {
+            // Clear previous selections
+            document.querySelectorAll('.lesson-type-btn').forEach(btn => btn.classList.remove('selected'));
+            
+            // Set today's date as default
+            const today = new Date();
+            lessonDateInput.value = today.toISOString().split('T')[0];
+            
+            // Update topic selection
+            updateLessonTopicSelect();
+            
+            // Clear custom type input
+            customLessonTypeInput.value = '';
+            
+            state.currentEditCell = { student, existingLesson };
+            addLessonModal.classList.add('active');
+        }
+
+        // Edit Schedule Cell
+        function editScheduleCell(cell) {
+            const day = cell.dataset.day;
+            const lesson = cell.dataset.lesson;
+            const classValue = scheduleClassSelect.value;
+            
+            if (!classValue) {
+                showNotification('Спочатку оберіть клас для розкладу', 'error');
+                return;
+            }
+            
+            const subject = prompt('Введіть предмет для цього уроку:');
+            if (subject) {
+                cell.textContent = `${classValue}\n${subject}`;
+                cell.classList.remove('empty');
+                
+                // Save to state
+                if (!state.schedule[classValue]) {
+                    state.schedule[classValue] = {};
+                }
+                if (!state.schedule[classValue][day]) {
+                    state.schedule[classValue][day] = {};
+                }
+                state.schedule[classValue][day][lesson] = subject;
+                
+                saveScheduleToStorage();
+            }
+        }
+
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Navigation
+            backToClassesBtn.addEventListener('click', () => {
+                journalScreen.classList.remove('active');
+                classSelectionScreen.classList.add('active');
+            });
+            
+            prevMonthBtn.addEventListener('click', () => {
+                state.currentMonth = (state.currentMonth - 1 + 12) % 12;
+                if (state.currentMonth === 11) state.currentYear--;
+                updateMonthDisplay();
+                loadClassData();
+            });
+            
+            nextMonthBtn.addEventListener('click', () => {
+                state.currentMonth = (state.currentMonth + 1) % 12;
+                if (state.currentMonth === 0) state.currentYear++;
+                updateMonthDisplay();
+                loadClassData();
+            });
+            
+            // Tabs
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.dataset.tab;
+                    
+                    // Update active tab
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    // Update active content
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                        if (content.id === `${tabId}Tab`) {
+                            content.classList.add('active');
+                        }
+                    });
+                    
+                    state.currentTab = tabId;
+                });
+            });
+            
+            // Save Journal
+            saveJournalBtn.addEventListener('click', () => {
+                saveToLocalStorage();
+                showNotification('Журнал успішно збережено!', 'success');
+            });
+            
+            // Lesson Modal
+            cancelLessonBtn.addEventListener('click', () => {
+                addLessonModal.classList.remove('active');
+            });
+            
+            saveLessonBtn.addEventListener('click', saveLesson);
+            
+            // Add custom lesson type
+            addCustomTypeBtn.addEventListener('click', () => {
+                const customType = customLessonTypeInput.value.trim();
+                if (customType) {
+                    if (!state.customLessonTypes.includes(customType)) {
+                        state.customLessonTypes.push(customType);
+                        renderLessonTypes();
+                        customLessonTypeInput.value = '';
+                        showNotification('Тип уроку додано!', 'success');
+                        saveToLocalStorage();
+                    } else {
+                        showNotification('Такий тип уроку вже існує', 'error');
+                    }
+                }
+            });
+            
+            // Grade Modal
+            cancelGradeBtn.addEventListener('click', () => {
+                gradeModal.classList.remove('active');
+                state.currentEditCell = null;
+            });
+            
+            saveGradeBtn.addEventListener('click', saveGrade);
+            
+            // Grade buttons
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('grade-btn')) {
+                    const gradeBtns = e.target.parentElement.querySelectorAll('.grade-btn');
+                    gradeBtns.forEach(btn => btn.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                }
+            });
+            
+            // KTP File Upload
+            ktpFileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    
+                    // Check file type
+                    if (!file.name.match(/\.(doc|docx)$/i)) {
+                        showNotification('Будь ласка, завантажте файл у форматі Word (.doc, .docx)', 'error');
+                        return;
+                    }
+                    
+                    showNotification('Обробка КТП...', 'info');
+                    processKTPFile(file);
+                }
+            });
+            
+            // Schedule
+            createScheduleBtn.addEventListener('click', () => {
+                const classValue = scheduleClassSelect.value;
+                if (!classValue) {
+                    showNotification('Оберіть клас для створення розкладу', 'error');
+                    return;
+                }
+                showNotification('Розклад створено для ' + classValue, 'success');
+                loadScheduleFromStorage(classValue);
+            });
+            
+            saveScheduleBtn.addEventListener('click', () => {
+                const classValue = scheduleClassSelect.value;
+                if (!classValue) {
+                    showNotification('Оберіть клас для збереження розкладу', 'error');
+                    return;
+                }
+                saveScheduleToStorage();
+                showNotification('Розклад збережено!', 'success');
+            });
+            
+            downloadScheduleBtn.addEventListener('click', () => {
+                showNotification('Розклад успішно завантажено!', 'success');
+            });
+            
+            // Logout
+            document.querySelector('.logout-btn').addEventListener('click', () => {
+                if (confirm('Ви впевнені, що хочете вийти?')) {
+                    showNotification('Ви успішно вийшли з системи', 'info');
+                }
+            });
+        }
+
+        // Save Lesson
+        function saveLesson() {
+            const dateValue = lessonDateInput.value;
+            const topic = lessonTopicSelect.value || 'Оберіть тему з КТП';
+            const selectedTypeBtn = document.querySelector('.lesson-type-btn.selected');
+            const type = selectedTypeBtn ? selectedTypeBtn.textContent : '+';
+            
+            if (!dateValue) {
+                showNotification('Будь ласка, оберіть дату уроку', 'error');
+                return;
+            }
+            
+            // Format date
+            const date = new Date(dateValue);
+            const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}`;
+            
+            const newLesson = {
+                id: state.currentEditCell?.existingLesson?.id || Date.now(),
+                date: formattedDate,
+                type: type,
+                topic: topic
+            };
+            
+            if (state.currentEditCell?.existingLesson) {
+                // Update existing lesson
+                const index = state.lessons.findIndex(l => l.id === state.currentEditCell.existingLesson.id);
+                if (index !== -1) {
+                    state.lessons[index] = newLesson;
+                }
+            } else {
+                // Add new lesson
+                state.lessons.push(newLesson);
+                
+                // Add grade entries for all students
+                state.currentClass.studentsList.forEach(student => {
+                    if (!state.grades[student]) state.grades[student] = {};
+                    state.grades[student][newLesson.id] = {
+                        grade: '',
+                        attendance: 'present'
+                    };
+                });
+            }
+            
+            saveToLocalStorage();
+            renderJournalTable();
+            addLessonModal.classList.remove('active');
+            
+            showNotification(state.currentEditCell?.existingLesson ? 'Урок оновлено!' : 'Урок успішно додано!', 'success');
+        }
+
+        // Save Grade
+        function saveGrade() {
+            if (!state.currentEditCell) return;
+            
+            const { student, lessonId } = state.currentEditCell;
+            const selectedGrade = document.querySelector('.grade-btn.selected[data-grade]');
+            const selectedAttendance = document.querySelector('.grade-btn.selected[data-attendance]');
+            
+            const grade = selectedGrade ? selectedGrade.dataset.grade : '';
+            const attendance = selectedAttendance ? selectedAttendance.dataset.attendance : 'present';
+            
+            if (!state.grades[student]) state.grades[student] = {};
+            state.grades[student][lessonId] = { grade, attendance };
+            
+            saveToLocalStorage();
+            renderJournalTable();
+            gradeModal.classList.remove('active');
+            state.currentEditCell = null;
+            
+            showNotification('Оцінку успішно збережено!', 'success');
+        }
+
+        // Save to Local Storage
+        function saveToLocalStorage() {
+            const storageKey = `class_${state.currentClass.id}_${state.currentYear}_${state.currentMonth}`;
+            const data = {
+                lessons: state.lessons,
+                grades: state.grades
+            };
+            localStorage.setItem(storageKey, JSON.stringify(data));
+            
+            // Save custom lesson types
+            localStorage.setItem('customLessonTypes', JSON.stringify(state.customLessonTypes));
+        }
+
+        // Save Schedule to Local Storage
+        function saveScheduleToStorage() {
+            const classValue = scheduleClassSelect.value;
+            if (classValue) {
+                localStorage.setItem(`schedule_${classValue}`, JSON.stringify(state.schedule[classValue] || {}));
+            }
+        }
+
+        // Load Schedule from Storage
+        function loadScheduleFromStorage(classValue) {
+            const saved = localStorage.getItem(`schedule_${classValue}`);
+            if (saved) {
+                state.schedule[classValue] = JSON.parse(saved);
+                
+                // Update grid
+                document.querySelectorAll('.schedule-cell').forEach(cell => {
+                    if (cell.dataset.day && cell.dataset.lesson) {
+                        const dayData = state.schedule[classValue]?.[cell.dataset.day]?.[cell.dataset.lesson];
+                        if (dayData) {
+                            cell.textContent = `${classValue}\n${dayData}`;
+                            cell.classList.remove('empty');
+                        } else {
+                            cell.textContent = '---';
+                            cell.classList.add('empty');
+                        }
+                    }
+                });
+            }
+        }
+
+        // Load from Local Storage
+        function loadFromLocalStorage() {
+            // Load custom lesson types
+            const savedTypes = localStorage.getItem('customLessonTypes');
+            if (savedTypes) {
+                state.customLessonTypes = JSON.parse(savedTypes);
+            }
+            
+            // Load KTP topics
+            loadKTPFromStorage();
+        }
+
+        // Show Notification
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 600;
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            if (type === 'success') {
+                notification.style.background = 'linear-gradient(135deg, var(--success), #219653)';
+            } else if (type === 'error') {
+                notification.style.background = 'linear-gradient(135deg, var(--danger), #c0392b)';
+            } else {
+                notification.style.background = 'linear-gradient(135deg, var(--accent), #e67e22)';
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+            
+            // Add CSS for animations
+            if (!document.querySelector('#notification-styles')) {
+                const style = document.createElement('style');
+                style.id = 'notification-styles';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOut {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
