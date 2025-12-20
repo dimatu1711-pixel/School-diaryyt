@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+ні просто зррби це у коді ну типу просто додай <!DOCTYPE html>
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Нова Журнал Оцінювання - Електронний журнал</title>
+    <title>Нова Щоденник - Електронний журнал</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js"></script>
     <style>
@@ -333,44 +333,6 @@
             font-size: 14px;
         }
         
-        .month-navigation {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .month-btn {
-            background: white;
-            border: 2px solid var(--gray-light);
-            color: var(--dark);
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 18px;
-        }
-        
-        .month-btn:hover {
-            border-color: var(--primary);
-            color: var(--primary);
-            transform: scale(1.1);
-        }
-        
-        .current-month {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 18px;
-            min-width: 180px;
-            text-align: center;
-        }
-        
         /* Tabs */
         .tabs {
             display: flex;
@@ -508,6 +470,35 @@
             color: var(--primary-dark);
         }
         
+        /* + для додавання уроку */
+        .lesson-plus-header {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary);
+            text-align: center;
+        }
+        
+        .lesson-plus {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        
+        .lesson-plus:hover {
+            transform: scale(1.1);
+            box-shadow: 0 3px 10px rgba(88, 214, 141, 0.3);
+        }
+        
         .attendance-marker {
             font-size: 10px;
             position: absolute;
@@ -551,6 +542,26 @@
         .save-journal-btn:hover {
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(139, 95, 191, 0.3);
+        }
+        
+        .add-lesson-btn {
+            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            transition: var(--transition);
+            margin-right: 15px;
+        }
+        
+        .add-lesson-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(88, 214, 141, 0.3);
         }
         
         /* KTP Tab */
@@ -988,6 +999,16 @@
                 grid-template-columns: repeat(3, 1fr);
                 font-size: 12px;
             }
+            
+            .lesson-controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .add-lesson-btn, .save-journal-btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -1009,11 +1030,11 @@
                     <div class="user-info">
                         <div class="user-avatar">ВЧ</div>
                         <div>
-                            <div class="user-name">Іваненко Іван Іванович</div>
+                            <div class="user-name" id="teacherNameDisplay">Іваненко Іван Іванович</div>
                             <div class="user-role">Вчитель математики</div>
                         </div>
                     </div>
-                    <button class="logout-btn">
+                    <button class="logout-btn" id="logoutBtn">
                         <i class="fas fa-sign-out-alt"></i> Вийти
                     </button>
                 </div>
@@ -1045,13 +1066,12 @@
                         <p id="currentClassSubject">Математика</p>
                     </div>
                 </div>
-                <div class="month-navigation">
-                    <button class="month-btn" id="prevMonth">
-                        <i class="fas fa-chevron-left"></i>
+                <div class="lesson-controls">
+                    <button class="add-lesson-btn" id="addLessonBtn">
+                        <i class="fas fa-plus"></i> Додати урок для всіх
                     </button>
-                    <div class="current-month" id="currentMonth">Листопад 2025</div>
-                    <button class="month-btn" id="nextMonth">
-                        <i class="fas fa-chevron-right"></i>
+                    <button class="save-journal-btn" id="saveJournalBtn">
+                        <i class="fas fa-save"></i> Зберегти журнал
                     </button>
                 </div>
             </div>
@@ -1075,11 +1095,6 @@
                     <table class="journal-table" id="gradesTable">
                         <!-- Table will be generated by JavaScript -->
                     </table>
-                </div>
-                <div class="lesson-controls">
-                    <button class="save-journal-btn" id="saveJournalBtn">
-                        <i class="fas fa-save"></i> Зберегти журнал
-                    </button>
                 </div>
             </div>
 
@@ -1162,13 +1177,6 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label class="form-label">Дата уроку:</label>
-                    <div class="date-range">
-                        <input type="date" id="lessonDate" class="form-control" 
-                               min="2025-11-30" max="2026-12-31">
-                    </div>
-                </div>
-                <div class="form-group">
                     <label class="form-label">Тема уроку:</label>
                     <select id="lessonTopic" class="form-control" disabled>
                         <option value="">Завантажте КТП для вибору тем</option>
@@ -1176,6 +1184,7 @@
                     <small style="color: var(--gray); margin-top: 5px; display: block;">
                         Для вибору теми завантажте КТП у відповідній вкладці
                     </small>
+                    <input type="text" id="customLessonTopic" class="form-control" placeholder="Або введіть тему вручну" style="margin-top: 10px;">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Тип уроку:</label>
@@ -1300,11 +1309,6 @@
                     ]
                 }
             ],
-            months: [
-                "Січень", "Лютий", "Березень", "Квітень",
-                "Травень", "Червень", "Липень", "Серпень",
-                "Вересень", "Жовтень", "Листопад", "Грудень"
-            ],
             defaultLessonTypes: [
                 { value: "Лекція", desc: "Викладання нового матеріалу" },
                 { value: "Практична", desc: "Практичні вправи та задачі" },
@@ -1318,15 +1322,14 @@
         // App State
         const state = {
             currentClass: null,
-            currentMonth: new Date().getMonth(),
-            currentYear: new Date().getFullYear(),
             currentTab: 'journal',
             lessons: [],
             grades: {},
             ktpTopics: [],
             currentEditCell: null,
             customLessonTypes: [],
-            schedule: {}
+            schedule: {},
+            lessonCounter: 1
         };
 
         // DOM Elements
@@ -1336,17 +1339,17 @@
         const backToClassesBtn = document.getElementById('backToClasses');
         const currentClassName = document.getElementById('currentClassName');
         const currentClassSubject = document.getElementById('currentClassSubject');
-        const currentMonth = document.getElementById('currentMonth');
-        const prevMonthBtn = document.getElementById('prevMonth');
-        const nextMonthBtn = document.getElementById('nextMonth');
+        const teacherNameDisplay = document.getElementById('teacherNameDisplay');
+        const logoutBtn = document.getElementById('logoutBtn');
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
         const gradesTable = document.getElementById('gradesTable');
         const saveJournalBtn = document.getElementById('saveJournalBtn');
+        const addLessonBtn = document.getElementById('addLessonBtn');
         const addLessonModal = document.getElementById('addLessonModal');
         const gradeModal = document.getElementById('gradeModal');
-        const lessonDateInput = document.getElementById('lessonDate');
         const lessonTopicSelect = document.getElementById('lessonTopic');
+        const customLessonTopicInput = document.getElementById('customLessonTopic');
         const lessonTypeOptions = document.getElementById('lessonTypeOptions');
         const customLessonTypeInput = document.getElementById('customLessonType');
         const addCustomTypeBtn = document.getElementById('addCustomTypeBtn');
@@ -1370,13 +1373,6 @@
             renderClasses();
             setupEventListeners();
             loadFromLocalStorage();
-            
-            // Set date range for lesson date picker
-            const today = new Date();
-            const endOf2026 = new Date(2026, 11, 31);
-            lessonDateInput.min = today.toISOString().split('T')[0];
-            lessonDateInput.max = endOf2026.toISOString().split('T')[0];
-            lessonDateInput.value = today.toISOString().split('T')[0];
             
             // Initialize lesson types
             renderLessonTypes();
@@ -1438,64 +1434,27 @@
             classSelectionScreen.classList.remove('active');
             journalScreen.classList.add('active');
             
-            updateMonthDisplay();
             loadClassData();
-        }
-
-        // Update Month Display
-        function updateMonthDisplay() {
-            currentMonth.textContent = `${appData.months[state.currentMonth]} ${state.currentYear}`;
         }
 
         // Load Class Data
         function loadClassData() {
-            const storageKey = `class_${state.currentClass.id}_${state.currentYear}_${state.currentMonth}`;
+            const storageKey = `class_${state.currentClass.id}`;
             const savedData = localStorage.getItem(storageKey);
             
             if (savedData) {
                 const data = JSON.parse(savedData);
                 state.lessons = data.lessons || [];
                 state.grades = data.grades || {};
+                state.lessonCounter = data.lessonCounter || 1;
             } else {
-                generateSampleData();
+                // Новий клас - без уроків
+                state.lessons = [];
+                state.grades = {};
+                state.lessonCounter = 1;
             }
             
             renderJournalTable();
-        }
-
-        // Generate Sample Data
-        function generateSampleData() {
-            state.lessons = [];
-            state.grades = {};
-            
-            const daysInMonth = new Date(state.currentYear, state.currentMonth + 1, 0).getDate();
-            let lessonCount = 0;
-            
-            for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(state.currentYear, state.currentMonth, day);
-                if (date.getDay() !== 0 && date.getDay() !== 6 && lessonCount < 15) {
-                    lessonCount++;
-                    state.lessons.push({
-                        id: Date.now() + day,
-                        date: `${day.toString().padStart(2, '0')}.${(state.currentMonth + 1).toString().padStart(2, '0')}.${state.currentYear}`,
-                        type: '+',
-                        topic: state.ktpTopics.length > 0 ? 'Оберіть тему з КТП' : 'Завантажте КТП'
-                    });
-                }
-            }
-            
-            // Initialize empty grades
-            state.currentClass.studentsList.forEach(student => {
-                state.grades[student] = {};
-                state.lessons.forEach(lesson => {
-                    state.grades[student][lesson.id] = {
-                        grade: '',
-                        attendance: 'present'
-                    };
-                });
-            });
-            
-            saveToLocalStorage();
         }
 
         // Render Journal Table
@@ -1504,10 +1463,13 @@
             
             // Create header
             let headerHTML = '<thead><tr><th>№</th><th class="student-cell">Учень</th>';
-            state.lessons.forEach(lesson => {
-                headerHTML += `<th>${lesson.date}</th>`;
+            
+            // Відображаємо всі уроки як "+"
+            state.lessons.forEach(() => {
+                headerHTML += `<th><div class="lesson-plus-header">+</div></th>`;
             });
-            // Add empty column for adding new lessons
+            
+            // Add column for new lesson (тоже +)
             headerHTML += '<th class="add-lesson-cell" id="addLessonColumn">+</th>';
             headerHTML += '</tr></thead>';
             
@@ -1527,18 +1489,20 @@
                         gradeDisplay += ' <span class="attendance-marker attendance-late">з</span>';
                     }
                     
-                    // If no grade and lesson type is +, show +
-                    if (!gradeDisplay && lesson.type === '+') {
-                        gradeDisplay = '+';
-                    }
-                    
                     bodyHTML += `
                         <td class="grade-cell ${!gradeData.grade ? 'empty' : ''}" 
                             data-student="${student}" 
                             data-lesson="${lesson.id}">
-                            ${gradeDisplay}
+                            ${gradeDisplay || '-'}
                         </td>`;
                 });
+                
+                // Empty cells for students without grades
+                for (let i = 0; i < state.lessons.length; i++) {
+                    if (!state.lessons[i]) {
+                        bodyHTML += `<td class="grade-cell empty"></td>`;
+                    }
+                }
                 
                 // Empty cell for adding lessons
                 bodyHTML += `<td class="add-lesson-cell"></td>`;
@@ -1556,19 +1520,18 @@
                     const lesson = state.lessons.find(l => l.id === lessonId);
                     
                     if (lesson) {
-                        if (lesson.type === '+' || this.textContent.includes('+')) {
-                            openAddLessonModal(student, lesson);
-                        } else {
-                            openGradeModal(student, lesson);
-                        }
+                        openGradeModal(student, lesson);
                     }
                 });
             });
             
             // Add click handler for adding lessons column
-            document.getElementById('addLessonColumn').addEventListener('click', () => {
-                openAddLessonModal();
-            });
+            const addLessonColumn = document.getElementById('addLessonColumn');
+            if (addLessonColumn) {
+                addLessonColumn.addEventListener('click', () => {
+                    openAddLessonModal();
+                });
+            }
         }
 
         // Render Lesson Types
@@ -1854,11 +1817,11 @@
             const gradeData = state.grades[student]?.[lesson.id] || { grade: '', attendance: 'present' };
             
             // Set student info
+            const lessonIndex = state.lessons.findIndex(l => l.id === lesson.id) + 1;
             studentInfo.innerHTML = `
-                <p><strong>Предмет:</strong> ${state.currentClass.subject}</p>
                 <p><strong>Учень:</strong> ${student}</p>
-                <p><strong>Урок:</strong> ${lesson.date}, ${lesson.type}</p>
-                ${lesson.topic ? `<p><strong>Тема:</strong> ${lesson.topic}</p>` : ''}
+                <p><strong>Урок ${lessonIndex}:</strong> ${lesson.topic}</p>
+                <p><strong>Тип:</strong> ${lesson.type}</p>
             `;
             
             // Clear previous selections
@@ -1879,21 +1842,17 @@
         }
 
         // Open Add Lesson Modal
-        function openAddLessonModal(student = null, existingLesson = null) {
+        function openAddLessonModal() {
             // Clear previous selections
             document.querySelectorAll('.lesson-type-btn').forEach(btn => btn.classList.remove('selected'));
-            
-            // Set today's date as default
-            const today = new Date();
-            lessonDateInput.value = today.toISOString().split('T')[0];
             
             // Update topic selection
             updateLessonTopicSelect();
             
-            // Clear custom type input
+            // Clear inputs
+            customLessonTopicInput.value = '';
             customLessonTypeInput.value = '';
             
-            state.currentEditCell = { student, existingLesson };
             addLessonModal.classList.add('active');
         }
 
@@ -1934,20 +1893,6 @@
                 classSelectionScreen.classList.add('active');
             });
             
-            prevMonthBtn.addEventListener('click', () => {
-                state.currentMonth = (state.currentMonth - 1 + 12) % 12;
-                if (state.currentMonth === 11) state.currentYear--;
-                updateMonthDisplay();
-                loadClassData();
-            });
-            
-            nextMonthBtn.addEventListener('click', () => {
-                state.currentMonth = (state.currentMonth + 1) % 12;
-                if (state.currentMonth === 0) state.currentYear++;
-                updateMonthDisplay();
-                loadClassData();
-            });
-            
             // Tabs
             tabs.forEach(tab => {
                 tab.addEventListener('click', () => {
@@ -1973,6 +1918,11 @@
             saveJournalBtn.addEventListener('click', () => {
                 saveToLocalStorage();
                 showNotification('Журнал успішно збережено!', 'success');
+            });
+            
+            // Add Lesson Button
+            addLessonBtn.addEventListener('click', () => {
+                openAddLessonModal();
             });
             
             // Lesson Modal
@@ -2009,9 +1959,12 @@
             // Grade buttons
             document.addEventListener('click', function(e) {
                 if (e.target.classList.contains('grade-btn')) {
-                    const gradeBtns = e.target.parentElement.querySelectorAll('.grade-btn');
-                    gradeBtns.forEach(btn => btn.classList.remove('selected'));
-                    e.target.classList.add('selected');
+                    const parent = e.target.parentElement;
+                    if (parent.id === 'gradeOptions' || parent.classList.contains('special-grades') || parent.classList.contains('attendance-buttons')) {
+                        const gradeBtns = parent.querySelectorAll('.grade-btn');
+                        gradeBtns.forEach(btn => btn.classList.remove('selected'));
+                        e.target.classList.add('selected');
+                    }
                 }
             });
             
@@ -2057,61 +2010,45 @@
             });
             
             // Logout
-            document.querySelector('.logout-btn').addEventListener('click', () => {
-                if (confirm('Ви впевнені, що хочете вийти?')) {
-                    showNotification('Ви успішно вийшли з системи', 'info');
-                }
-            });
+            logoutBtn.addEventListener('click', logout);
         }
 
         // Save Lesson
         function saveLesson() {
-            const dateValue = lessonDateInput.value;
-            const topic = lessonTopicSelect.value || 'Оберіть тему з КТП';
+            const topic = customLessonTopicInput.value.trim() || lessonTopicSelect.value;
             const selectedTypeBtn = document.querySelector('.lesson-type-btn.selected');
-            const type = selectedTypeBtn ? selectedTypeBtn.textContent : '+';
+            const type = selectedTypeBtn ? selectedTypeBtn.textContent : 'Лекція';
             
-            if (!dateValue) {
-                showNotification('Будь ласка, оберіть дату уроку', 'error');
+            if (!topic) {
+                showNotification('Будь ласка, введіть тему уроку', 'error');
                 return;
             }
             
-            // Format date
-            const date = new Date(dateValue);
-            const formattedDate = `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}`;
-            
             const newLesson = {
-                id: state.currentEditCell?.existingLesson?.id || Date.now(),
-                date: formattedDate,
+                id: Date.now(),
+                topic: topic,
                 type: type,
-                topic: topic
+                number: state.lessonCounter
             };
             
-            if (state.currentEditCell?.existingLesson) {
-                // Update existing lesson
-                const index = state.lessons.findIndex(l => l.id === state.currentEditCell.existingLesson.id);
-                if (index !== -1) {
-                    state.lessons[index] = newLesson;
-                }
-            } else {
-                // Add new lesson
-                state.lessons.push(newLesson);
-                
-                // Add grade entries for all students
-                state.currentClass.studentsList.forEach(student => {
-                    if (!state.grades[student]) state.grades[student] = {};
-                    state.grades[student][newLesson.id] = {
-                        grade: '',
-                        attendance: 'present'
-                    };
-                });
-            }
+            // Add new lesson
+            state.lessons.push(newLesson);
+            state.lessonCounter++;
+            
+            // Add grade entries for all students
+            state.currentClass.studentsList.forEach(student => {
+                if (!state.grades[student]) state.grades[student] = {};
+                state.grades[student][newLesson.id] = {
+                    grade: '',
+                    attendance: 'present'
+                };
+            });
             
             saveToLocalStorage();
             renderJournalTable();
             addLessonModal.classList.remove('active');
             
-            showNotification(state.currentEditCell?.existingLesson ? 'Урок оновлено!' : 'Урок успішно додано!', 'success');
+            showNotification('Урок успішно додано!', 'success');
         }
 
         // Save Grade
@@ -2138,10 +2075,13 @@
 
         // Save to Local Storage
         function saveToLocalStorage() {
-            const storageKey = `class_${state.currentClass.id}_${state.currentYear}_${state.currentMonth}`;
+            if (!state.currentClass) return;
+            
+            const storageKey = `class_${state.currentClass.id}`;
             const data = {
                 lessons: state.lessons,
-                grades: state.grades
+                grades: state.grades,
+                lessonCounter: state.lessonCounter
             };
             localStorage.setItem(storageKey, JSON.stringify(data));
             
@@ -2189,6 +2129,14 @@
             
             // Load KTP topics
             loadKTPFromStorage();
+        }
+
+        // Logout Function
+        function logout() {
+            if (confirm('Ви впевнені, що хочете вийти з системи?')) {
+                // Перенаправляємо на головну сторінку входу
+                window.location.href = 'index.html';
+            }
         }
 
         // Show Notification
