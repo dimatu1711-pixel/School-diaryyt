@@ -167,6 +167,36 @@
             margin-top: 5px;
             text-align: center;
         }
+        
+        /* Стилі для входу учня */
+        .student-login-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px dashed #48bb78;
+        }
+        
+        .student-toggle {
+            text-align: center;
+            color: #48bb78;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .student-toggle:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .student-login-input {
+            display: none;
+            margin-top: 10px;
+        }
+        
+        .student-btn {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%) !important;
+        }
     </style>
 </head>
 <body>
@@ -181,8 +211,7 @@
         <div id="login" class="tab-content active">
             <h2>Вхід до системи</h2>
             
-          
-            
+            <!-- Таблиця засідань -->
             <table class="meeting-table">
                 <thead>
                     <tr>
@@ -209,12 +238,12 @@
                 </tbody>
             </table>
             
-            <!-- Звичайний вхід -->
-            <input type="text" id="loginEmail" placeholder="Email">
+            <!-- Звичайний вхід (адмін) -->
+            <input type="text" id="loginEmail" placeholder="Email (для адміністратора)">
             <input type="password" id="loginPassword" placeholder="Пароль">
-            <button class="btn" onclick="login()">Увійти</button>
+            <button class="btn" onclick="login()">Увійти як адміністратор</button>
             
-            <!-- Перемикач для вчителя -->
+            <!-- Вхід для вчителя -->
             <div class="teacher-code-section">
                 <div class="teacher-toggle" onclick="toggleTeacherLogin()">
                     👨‍🏫 Я вчитель, хочу увійти за кодом
@@ -228,6 +257,22 @@
                     <input type="text" id="teacherCode" placeholder="Введіть код доступу (напр. TEACHER123)" style="margin-top: 15px;">
                     <button class="btn" onclick="loginWithCode()" style="background: linear-gradient(135deg, #8B5FBF 0%, #6A3093 100%);">
                         👨‍🏫 Увійти за кодом
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Вхід для учня -->
+            <div class="student-login-section">
+                <div class="student-toggle" onclick="toggleStudentLogin()">
+                    👨‍🎓 Я учень, хочу увійти до щоденника
+                </div>
+                
+                <!-- Поля для входу учня -->
+                <div id="studentLoginInput" class="student-login-input">
+                    <input type="email" id="studentEmail" placeholder="Ваш email (який дав адміністратор)" style="margin-top: 15px;">
+                    <input type="password" id="studentPassword" placeholder="Ваш пароль">
+                    <button class="btn student-btn" onclick="loginStudent()">
+                        👨‍🎓 Увійти до щоденника
                     </button>
                 </div>
             </div>
@@ -289,6 +334,10 @@
             const codeInput = document.getElementById('teacherCodeInput');
             const toggleBtn = document.querySelector('.teacher-toggle');
             
+            // Ховаємо вхід учня, якщо він відкритий
+            document.getElementById('studentLoginInput').style.display = 'none';
+            document.querySelector('.student-toggle').innerHTML = '👨‍🎓 Я учень, хочу увійти до щоденника';
+            
             if (codeInput.style.display === 'block') {
                 codeInput.style.display = 'none';
                 toggleBtn.innerHTML = '👨‍🏫 Я вчитель, хочу увійти за кодом';
@@ -299,6 +348,28 @@
                 // Фокусуємося на полі коду
                 setTimeout(() => {
                     document.getElementById('teacherCode').focus();
+                }, 100);
+            }
+        }
+
+        function toggleStudentLogin() {
+            const studentInput = document.getElementById('studentLoginInput');
+            const toggleBtn = document.querySelector('.student-toggle');
+            
+            // Ховаємо вхід вчителя, якщо він відкритий
+            document.getElementById('teacherCodeInput').style.display = 'none';
+            document.querySelector('.teacher-toggle').innerHTML = '👨‍🏫 Я вчитель, хочу увійти за кодом';
+            
+            if (studentInput.style.display === 'block') {
+                studentInput.style.display = 'none';
+                toggleBtn.innerHTML = '👨‍🎓 Я учень, хочу увійти до щоденника';
+            } else {
+                studentInput.style.display = 'block';
+                toggleBtn.innerHTML = '👨‍🎓 Сховати вхід для учня';
+                
+                // Фокусуємося на полі email
+                setTimeout(() => {
+                    document.getElementById('studentEmail').focus();
                 }, 100);
             }
         }
@@ -334,10 +405,73 @@
                     localStorage.setItem('teacherAuth', JSON.stringify(teacherAuth));
                     window.location.href = 'teacher-diary.html';
                 } else {
-                    window.location.href = 'dashboard.html';
+                    // Для учня перевіряємо через schoolData
+                    loginStudent(email, password);
                 }
             } else {
                 alert('❌ Невірний email або пароль!');
+            }
+        }
+
+        function loginStudent(emailParam = null, passwordParam = null) {
+            let email, password;
+            
+            if (emailParam && passwordParam) {
+                email = emailParam;
+                password = passwordParam;
+            } else {
+                email = document.getElementById('studentEmail').value;
+                password = document.getElementById('studentPassword').value;
+            }
+            
+            if (!email || !password) {
+                alert('❌ Будь ласка, заповніть всі поля!');
+                return;
+            }
+            
+            // Завантажуємо дані школи
+            const schoolData = JSON.parse(localStorage.getItem('schoolData')) || {
+                students: []
+            };
+            
+            // Шукаємо учня зі співпадінням email і пароля
+            const student = schoolData.students.find(s => 
+                (s.loginEmail === email || s.email === email) && 
+                s.password === password
+            );
+            
+            if (student) {
+                // Зберігаємо дані учня
+                localStorage.setItem('currentStudent', JSON.stringify(student));
+                
+                // Створюємо повний об'єкт для щоденника
+                const studentForDiary = {
+                    student_name: student.student_name || student.name || 'Учень',
+                    school_name: student.school_name || schoolData.name || 'Школа',
+                    class_number: student.class_number || student.classInfo || 'Клас',
+                    email: student.loginEmail || student.email,
+                    password: student.password,
+                    id: student.id,
+                    classId: student.classId
+                };
+                
+                localStorage.setItem('studentDiaryData', JSON.stringify(studentForDiary));
+                
+                alert(`✅ Успішний вхід!\nЛаскаво просимо, ${studentForDiary.student_name}!`);
+                window.location.href = 'student-diary.html';
+            } else {
+                alert('❌ Невірний email або пароль учня. Перевірте дані або зверніться до вчителя.');
+                
+                // Підсвічуємо поля червоним
+                const emailField = document.getElementById('studentEmail');
+                const passwordField = document.getElementById('studentPassword');
+                if (emailField) emailField.style.borderColor = '#e74c3c';
+                if (passwordField) passwordField.style.borderColor = '#e74c3c';
+                
+                setTimeout(() => {
+                    if (emailField) emailField.style.borderColor = '#e1e1e1';
+                    if (passwordField) passwordField.style.borderColor = '#e1e1e1';
+                }, 1000);
             }
         }
 
@@ -409,7 +543,8 @@
                         {
                             id: Date.now(),
                             name: 'Директор',
-                            email: email
+                            email: email,
+                            password: 'admin123' // Демо пароль
                         }
                     ],
                     students: [],
@@ -418,10 +553,20 @@
                 
                 localStorage.setItem('schoolData', JSON.stringify(schoolData));
                 
-                // ПРОСТО ПЕРЕНАПРАВЛЯЄМО НА school-admin.html
+                // Автоматично входимо як адмін нової школи
+                const userData = {
+                    email: email,
+                    role: 'admin',
+                    name: 'Директор',
+                    isAuthenticated: true
+                };
+                
+                localStorage.setItem('userData', JSON.stringify(userData));
+                
+                alert(`✅ Школу "${schoolName}" зареєстровано!\nВаш логін: ${email}\nПароль: admin123`);
                 window.location.href = 'school-admin.html';
             } else {
-                alert('Будь ласка, заповніть назву школи та email!');
+                alert('❌ Будь ласка, заповніть назву школи та email!');
             }
         }
 
@@ -431,6 +576,7 @@
             if(email) {
                 const code = Math.floor(100000 + Math.random() * 900000);
                 
+                // Намагаємось відправити email
                 emailjs.send("service_ydertiz", "template_xxxxx", {
                     to_email: email,
                     КОД_ДОСТУПА: code
@@ -444,22 +590,40 @@
             }
         }
         
-        // Дозволяємо вхід за допомогою Enter
-        document.getElementById('loginEmail').addEventListener('keypress', function(e) {
+        // Дозволяємо вхід при натисканні Enter
+        document.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                login();
+                // Перевіряємо, яка форма активна
+                if (document.getElementById('teacherCodeInput').style.display === 'block') {
+                    loginWithCode();
+                } else if (document.getElementById('studentLoginInput').style.display === 'block') {
+                    loginStudent();
+                } else {
+                    login();
+                }
             }
         });
         
-        document.getElementById('loginPassword').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                login();
-            }
-        });
-        
-        document.getElementById('teacherCode').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                loginWithCode();
+        // Завантажуємо demo студента при старті
+        document.addEventListener('DOMContentLoaded', function() {
+            // Створюємо демо-студента, якщо ще немає
+            const schoolData = JSON.parse(localStorage.getItem('schoolData'));
+            if (schoolData && schoolData.students && schoolData.students.length === 0) {
+                // Додаємо демо-студента
+                const demoStudent = {
+                    id: Date.now(),
+                    name: "Іван Петренко",
+                    email: "student@school.com",
+                    loginEmail: "student@school.com",
+                    password: "student123",
+                    classId: 1,
+                    school_name: "Демо школа",
+                    class_number: "7-А клас",
+                    student_name: "Іван Петренко"
+                };
+                
+                schoolData.students.push(demoStudent);
+                localStorage.setItem('schoolData', JSON.stringify(schoolData));
             }
         });
     </script>
